@@ -132,125 +132,114 @@ def pdf_to_images(pdf_path):
 import math
 
 def calculate_deterministic_scores(extracted_data):
+    print("Calculating deterministic scores...")
     scores = {}
+    details = {} # Track confidence/source
     data = extracted_data or {}
     
     # --- 1. LIQUIDITY CONDITIONS (Higher = Looser/Better) ---
-    # LOGIC: Uses log-scale for spreads to avoid over-rewarding tiny moves.
-    # PENALTY: Softens the Real Yield hit (gradual drag above 1.5%).
     try:
-        hy_spread = data.get('hy_spread_current') or 4.50
-        real_yield = data.get('real_yield_10y') or 1.50
+        hy_spread = data.get('hy_spread_current')
+        real_yield = data.get('real_yield_10y')
         
-        # 1. Spread Component (Log Scale)
-        # Median ~4.5%. Spread 2.8% -> Log ratio ~0.68 -> * 3 -> +2 pts -> Base 7.0
-        # Using log base 2 makes it sensitive to doubling/halving of spreads
-        median_spread = 4.5
-        # Safety check for log(0) or negative
-        if hy_spread <= 0: hy_spread = 0.01 
-        
-        spread_component = 5.0 + (math.log(median_spread / hy_spread, 2) * 3.0)
-        
-        # 2. Real Yield Penalty (Gradual)
-        # Only penalize if yield > 1.5%. 
-        # e.g., Yield 2.0% -> (2.0 - 1.5) * 2 = 1.0 point penalty.
-        ry_penalty = max(0, (real_yield - 1.5) * 2.0)
-        
-        final_liq = spread_component - ry_penalty
-        scores['Liquidity Conditions'] = round(min(max(final_liq, 0), 10), 1)
+        if hy_spread is not None and real_yield is not None:
+            # Logic: ... (Same as before)
+            median_spread = 4.5
+            if hy_spread <= 0: hy_spread = 0.01 
+            spread_component = 5.0 + (math.log(median_spread / hy_spread, 2) * 3.0)
+            ry_penalty = max(0, (real_yield - 1.5) * 2.0)
+            final_liq = spread_component - ry_penalty
+            scores['Liquidity Conditions'] = round(min(max(final_liq, 0), 10), 1)
+            details['Liquidity Conditions'] = "Calculated (Spread + Real Yield)"
+        else:
+            scores['Liquidity Conditions'] = 5.0
+            details['Liquidity Conditions'] = "Default (Missing Data)"
     except Exception as e:
         print(f"Error calc Liquidity: {e}")
         scores['Liquidity Conditions'] = 5.0
+        details['Liquidity Conditions'] = "Error (Defaulted)"
 
     # --- 2. VALUATION RISK (Higher = Expensive/Riskier) ---
-    # LOGIC: Centers Neutral at 18x P/E (Modern Era Norm).
     try:
-        pe_ratio = data.get('forward_pe_current') or 18.0
-        
-        # Formula: (PE - 18) * 0.66 + 5
-        # 18x -> 0 + 5 = Score 5 (Neutral)
-        # 24x -> 6 * 0.66 = +4 -> Score 9 (Expensive)
-        # 12x -> -6 * 0.66 = -4 -> Score 1 (Cheap)
-        val_score = 5.0 + ((pe_ratio - 18.0) * 0.66)
-        
-        scores['Valuation Risk'] = round(min(max(val_score, 0), 10), 1)
+        pe_ratio = data.get('forward_pe_current')
+        if pe_ratio is not None:
+            val_score = 5.0 + ((pe_ratio - 18.0) * 0.66)
+            scores['Valuation Risk'] = round(min(max(val_score, 0), 10), 1)
+            details['Valuation Risk'] = f"Calculated (P/E {pe_ratio})"
+        else:
+            scores['Valuation Risk'] = 5.0
+            details['Valuation Risk'] = "Default (Missing P/E)"
     except Exception as e:
         print(f"Error calc Valuation: {e}")
         scores['Valuation Risk'] = 5.0
+        details['Valuation Risk'] = "Error (Defaulted)"
 
     # --- 3. INFLATION PRESSURE (Higher = High Inflation) ---
-    # LOGIC: Centers Neutral at 2.25% (Fed Target + slight premium).
-    # This fixes the "2% = High Score" bug from the previous version.
     try:
-        inf_exp = data.get('inflation_expectations_5y5y') or 2.25
-        
-        # Formula: Center at 2.25%.
-        # 2.25% -> Score 5.0
-        # 2.55% -> +0.30 -> * 10 -> +3.0 -> Score 8.0 (Hot)
-        # 2.00% -> -0.25 -> * 10 -> -2.5 -> Score 2.5 (Cool)
-        inf_score = 5.0 + ((inf_exp - 2.25) * 10.0)
-        
-        scores['Inflation Pressure'] = round(min(max(inf_score, 0), 10), 1)
+        inf_exp = data.get('inflation_expectations_5y5y')
+        if inf_exp is not None:
+            inf_score = 5.0 + ((inf_exp - 2.25) * 10.0)
+            scores['Inflation Pressure'] = round(min(max(inf_score, 0), 10), 1)
+            details['Inflation Pressure'] = f"Calculated (5y5y {inf_exp}%)"
+        else:
+            scores['Inflation Pressure'] = 5.0
+            details['Inflation Pressure'] = "Default (Missing 5y5y)"
     except Exception as e:
         print(f"Error calc Inflation: {e}")
         scores['Inflation Pressure'] = 5.0
+        details['Inflation Pressure'] = "Error (Defaulted)"
 
     # --- 4. CREDIT STRESS (Higher = Panic) ---
-    # LOGIC: Standard linear scaling, capped.
     try:
-        hy_spread = data.get('hy_spread_current') or 4.0
-        # 3.0% Spread = Score 2 (Relaxed)
-        # 8.0% Spread = Score 10 (Panic)
-        # Formula: Base 2 + delta scaled
-        if hy_spread < 3.0:
-            stress_score = 2.0
+        hy_spread = data.get('hy_spread_current')
+        if hy_spread is not None:
+            if hy_spread < 3.0:
+                stress_score = 2.0
+            else:
+                stress_score = 2.0 + ((hy_spread - 3.0) * 1.6)
+            scores['Credit Stress'] = round(min(max(stress_score, 0), 10), 1)
+            details['Credit Stress'] = f"Calculated (Spread {hy_spread}%)"
         else:
-            stress_score = 2.0 + ((hy_spread - 3.0) * 1.6)
-            
-        scores['Credit Stress'] = round(min(max(stress_score, 0), 10), 1)
+            scores['Credit Stress'] = 5.0
+            details['Credit Stress'] = "Default (Missing Spread)"
     except Exception as e:
         print(f"Error calc Credit: {e}")
         scores['Credit Stress'] = 5.0
+        details['Credit Stress'] = "Error (Defaulted)"
 
     # --- 5. GROWTH IMPULSE (Higher = Boom) ---
-    # LOGIC: Uses 10y-2y Yield Curve as proxy (Steep = Growth, Inverted = Recession).
     try:
         y10 = data.get('yield_10y')
         y2 = data.get('yield_2y')
-        
         if y10 is not None and y2 is not None:
-            curve_slope = y10 - y2 # e.g. 4.58 - 4.25 = 0.33
+            curve_slope = y10 - y2
+            growth_score = 5.0 + ((curve_slope - 0.50) * 3.5)
+            scores['Growth Impulse'] = round(min(max(growth_score, 0), 10), 1)
+            details['Growth Impulse'] = f"Calculated (Curve {curve_slope:.2f}%)"
         else:
-            curve_slope = 0.10 # Default Neutral
-            
-        # Neutral (0.50%) -> Score 5 (Raised baseline per feedback)
-        # Steep (+1.50%) -> Score 8.5
-        # Inverted (-0.50%) -> Score 1.5
-        # Formula: 5 + (slope * 3.5) centered at 0.50
-        growth_score = 5.0 + ((curve_slope - 0.50) * 3.5)
-        
-        scores['Growth Impulse'] = round(min(max(growth_score, 0), 10), 1)
+            scores['Growth Impulse'] = 5.0
+            details['Growth Impulse'] = "Default (Missing Yields)"
     except Exception as e:
         print(f"Error calc Growth: {e}")
         scores['Growth Impulse'] = 5.0
+        details['Growth Impulse'] = "Error (Defaulted)"
 
     # --- 6. RISK APPETITE (Higher = Greed) ---
-    # LOGIC: Uses VIX if available. Lower VIX = Higher Appetite.
     try:
         vix = data.get('vix_index')
         if vix is not None:
-            # VIX 10 -> Score 10 (Extreme Greed)
-            # VIX 20 -> Score 5 (Neutral)
-            # VIX 30 -> Score 0 (Panic)
             risk_score = 10.0 - ((vix - 10.0) * 0.5)
             scores['Risk Appetite'] = round(min(max(risk_score, 0), 10), 1)
+            details['Risk Appetite'] = f"Calculated (VIX {vix})"
         else:
-            scores['Risk Appetite'] = 7.0 # Default Greed if VIX missing
+            scores['Risk Appetite'] = 7.0 
+            details['Risk Appetite'] = "Default (Missing VIX)"
     except:
         scores['Risk Appetite'] = 7.0
+        details['Risk Appetite'] = "Error (Defaulted)"
     
     print(f"Calculated Scores: {scores}")
-    return scores
+    return scores, details
 
 def extract_metrics_gemini(pdf_path):
     print("Extracting Ground Truth Data with Gemini...")
@@ -355,7 +344,7 @@ def get_score_color(category, score):
         
     return "#2c3e50" # Default Dark Blue/Black
 
-def generate_html(today, summary_or, summary_gemini, scores):
+def generate_html(today, summary_or, summary_gemini, scores, details):
     print("Generating HTML report...")
     summary_or = clean_llm_output(summary_or)
     summary_gemini = clean_llm_output(summary_gemini)
@@ -363,11 +352,19 @@ def generate_html(today, summary_or, summary_gemini, scores):
     html_or = markdown.markdown(summary_or, extensions=['tables'])
     html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
-    # Format scores for display with Colors
+    # Format scores for display with Colors and Confidence
     score_html = "<ul style='list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px;'>"
     for k, v in scores.items():
         color = get_score_color(k, v)
-        score_html += f"<li style='background: white; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1 0 140px; text-align: center; border-left: 5px solid {color};'><strong>{k}</strong><br><span style='font-size: 1.5em; color: {color}; font-weight: bold;'>{v}/10</span></li>"
+        detail_text = details.get(k, "Unknown")
+        warning = ""
+        if "Default" in detail_text or "Error" in detail_text:
+            warning = " <span title='" + detail_text + "' style='cursor: help;'>⚠️</span>"
+        else:
+            # Add checkmark for calculated
+             warning = " <span title='" + detail_text + "' style='cursor: help; opacity: 0.5;'>✅</span>"
+
+        score_html += f"<li style='background: white; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1 0 140px; text-align: center; border-left: 5px solid {color};'><strong>{k}</strong>{warning}<br><span style='font-size: 1.5em; color: {color}; font-weight: bold;'>{v}/10</span></li>"
     score_html += "</ul>"
 
     css = """
@@ -492,7 +489,7 @@ def main():
         if k not in extracted_metrics or extracted_metrics[k] is None:
             extracted_metrics[k] = v
 
-    algo_scores = calculate_deterministic_scores(extracted_metrics)
+    algo_scores, score_details = calculate_deterministic_scores(extracted_metrics)
     
     ground_truth_context = {
         "extracted_metrics": extracted_metrics,
@@ -510,7 +507,7 @@ def main():
     
     # Save & Report
     os.makedirs("summaries", exist_ok=True)
-    generate_html(today, summary_or, summary_gemini, algo_scores)
+    generate_html(today, summary_or, summary_gemini, algo_scores, score_details)
     
     # Email
     repo_name = GITHUB_REPOSITORY.split("/")[-1]
