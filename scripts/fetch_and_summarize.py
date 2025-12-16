@@ -7,6 +7,7 @@ import markdown
 import base64
 import json
 import re
+import math
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -123,47 +124,115 @@ def pdf_to_images(pdf_path):
 
 # --- Deterministic Scoring Logic ---
 
+import math
+
 def calculate_deterministic_scores(extracted_data):
-    print("Calculating deterministic scores...")
     scores = {}
     data = extracted_data or {}
-
-    # Defaults / Fallbacks
-    hy_spread = data.get('hy_spread_current') or 3.50
-    hy_median = data.get('hy_spread_median') or 4.50
-    pe_current = data.get('forward_pe_current') or 20.0
-    pe_median = data.get('forward_pe_median') or 17.0
-    real_yield = data.get('real_yield_10y') or 1.8
-    inflation = data.get('inflation_expectations_5y5y') or 2.2
     
-    # 1. Liquidity Score (Inverse to Spreads & Real Yields)
-    # Tighter spread = More Liquid (Higher Score). Higher Real Yield = Less Liquid.
-    # Logic: Start at 5. Add if spread is tight vs median. Subtract if Real Yield is high (>1.5%).
-    spread_delta = (hy_median - hy_spread) * 2 # e.g. (4.5 - 2.8) * 2 = +3.4 points
-    liquidity_score = 5 + spread_delta 
-    if real_yield > 2.0: liquidity_score -= 2
-    scores['Liquidity Conditions'] = min(max(round(liquidity_score), 0), 10)
+    # --- 1. LIQUIDITY CONDITIONS (Higher = Looser/Better) ---
+    # LOGIC: Uses log-scale for spreads to avoid over-rewarding tiny moves.
+    # PENALTY: Softens the Real Yield hit (gradual drag above 1.5%).
+    try:
+        hy_spread = data.get('hy_spread_current') or 4.50
+        real_yield = data.get('real_yield_10y') or 1.50
+        
+        # 1. Spread Component (Log Scale)
+        # Median ~4.5%. Spread 2.8% -> Log ratio ~0.68 -> * 3 -> +2 pts -> Base 7.0
+        # Using log base 2 makes it sensitive to doubling/halving of spreads
+        median_spread = 4.5
+        # Safety check for log(0) or negative
+        if hy_spread <= 0: hy_spread = 0.01 
+        
+        spread_component = 5.0 + (math.log(median_spread / hy_spread, 2) * 3.0)
+        
+        # 2. Real Yield Penalty (Gradual)
+        # Only penalize if yield > 1.5%. 
+        # e.g., Yield 2.0% -> (2.0 - 1.5) * 2 = 1.0 point penalty.
+        ry_penalty = max(0, (real_yield - 1.5) * 2.0)
+        
+        final_liq = spread_component - ry_penalty
+        scores['Liquidity Conditions'] = round(min(max(final_liq, 1), 10), 1)
+    except Exception as e:
+        print(f"Error calc Liquidity: {e}")
+        scores['Liquidity Conditions'] = 5.0
 
-    # 2. Valuation Risk (Direct to P/E)
-    # Higher P/E = Higher Risk.
-    # Logic: 15x = Score 3, 20x = Score 7, 25x = Score 10.
-    val_score = (pe_current - 12) * 0.8 # e.g. (23.4 - 12) * 0.8 = 9.1
-    scores['Valuation Risk'] = min(max(round(val_score), 0), 10)
+    # --- 2. VALUATION RISK (Higher = Expensive/Riskier) ---
+    # LOGIC: Centers Neutral at 18x P/E (Modern Era Norm).
+    try:
+        pe_ratio = data.get('forward_pe_current') or 18.0
+        
+        # Formula: (PE - 18) * 0.66 + 5
+        # 18x -> 0 + 5 = Score 5 (Neutral)
+        # 24x -> 6 * 0.66 = +4 -> Score 9 (Expensive)
+        # 12x -> -6 * 0.66 = -4 -> Score 1 (Cheap)
+        val_score = 5.0 + ((pe_ratio - 18.0) * 0.66)
+        
+        scores['Valuation Risk'] = round(min(max(val_score, 1), 10), 1)
+    except Exception as e:
+        print(f"Error calc Valuation: {e}")
+        scores['Valuation Risk'] = 5.0
 
-    # 3. Credit Stress (Inverse to Spreads)
-    # Low Spread = Low Stress.
-    credit_score = (hy_spread / 8.0) * 10 # e.g. 2.84 / 8 * 10 = 3.5
-    scores['Credit Stress'] = min(max(round(credit_score), 0), 10)
+    # --- 3. INFLATION PRESSURE (Higher = High Inflation) ---
+    # LOGIC: Centers Neutral at 2.25% (Fed Target + slight premium).
+    # This fixes the "2% = High Score" bug from the previous version.
+    try:
+        inf_exp = data.get('inflation_expectations_5y5y') or 2.25
+        
+        # Formula: Center at 2.25%.
+        # 2.25% -> Score 5.0
+        # 2.55% -> +0.30 -> * 10 -> +3.0 -> Score 8.0 (Hot)
+        # 2.00% -> -0.25 -> * 10 -> -2.5 -> Score 2.5 (Cool)
+        inf_score = 5.0 + ((inf_exp - 2.25) * 10.0)
+        
+        scores['Inflation Pressure'] = round(min(max(inf_score, 1), 10), 1)
+    except Exception as e:
+        print(f"Error calc Inflation: {e}")
+        scores['Inflation Pressure'] = 5.0
 
-    # 4. Inflation Pressure
-    # Target 2.0%. 
-    inf_score = (inflation / 3.0) * 10 # e.g. 2.25 / 3 * 10 = 7.5
-    scores['Inflation Pressure'] = min(max(round(inf_score), 0), 10)
+    # --- 4. CREDIT STRESS (Higher = Panic) ---
+    # LOGIC: Standard linear scaling, capped.
+    try:
+        hy_spread = data.get('hy_spread_current') or 4.0
+        # 3.0% Spread = Score 2 (Relaxed)
+        # 8.0% Spread = Score 10 (Panic)
+        # Formula: Base 2 + delta scaled
+        if hy_spread < 3.0:
+            stress_score = 2.0
+        else:
+            stress_score = 2.0 + ((hy_spread - 3.0) * 1.6)
+            
+        scores['Credit Stress'] = round(min(max(stress_score, 1), 10), 1)
+    except Exception as e:
+        print(f"Error calc Credit: {e}")
+        scores['Credit Stress'] = 5.0
 
-    # Placeholder for complex ones (need more inputs like GDP/Earnings for Growth)
-    scores['Growth Impulse'] = 6 # Default/Neutral if data missing
-    scores['Risk Appetite'] = 7 # Inferred from Liquidity being high
+    # --- 5. GROWTH IMPULSE (Higher = Boom) ---
+    # LOGIC: Uses 10y-2y Yield Curve as proxy (Steep = Growth, Inverted = Recession).
+    try:
+        y10 = data.get('yield_10y')
+        y2 = data.get('yield_2y')
+        
+        if y10 is not None and y2 is not None:
+            curve_slope = y10 - y2 # e.g. 4.58 - 4.25 = 0.33
+        else:
+            curve_slope = 0.10 # Default Neutral
+            
+        # Neutral (0.10%) -> Score 5
+        # Steep (+1.0%) -> Score 8+
+        # Inverted (-0.5%) -> Score 2
+        # Formula: 5 + (slope * 3.5)
+        growth_score = 5.0 + ((curve_slope - 0.10) * 3.5)
+        
+        scores['Growth Impulse'] = round(min(max(growth_score, 1), 10), 1)
+    except Exception as e:
+        print(f"Error calc Growth: {e}")
+        scores['Growth Impulse'] = 5.0
 
+    # 6. Risk Appetite (Placeholder)
+    # Kept fixed unless you extract VIX or Momentum data
+    scores['Risk Appetite'] = 7.0
+    
     print(f"Calculated Scores: {scores}")
     return scores
 
