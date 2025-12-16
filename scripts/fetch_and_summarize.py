@@ -24,7 +24,7 @@ SUMMARIZE_PROVIDER = os.getenv("SUMMARIZE_PROVIDER", "ALL").upper()
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-macro-summary") # Defaults if not running in Actions 
 
 PDF_URL = "https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf"
-OPENROUTER_MODEL = "anthropic/claude-sonnet-4.5" 
+OPENROUTER_MODEL = "nvidia/nemotron-nano-12b-v2-vl" 
 GEMINI_MODEL = "gemini-3-pro-preview" 
 
 # --- Prompts ---
@@ -65,7 +65,7 @@ Ground Truth Data:
 
 Format Constraints:
 Length: Total output must be 700–1,000 words.
-Tables: The "Dashboard Scoreboard" is the only table allowed. 
+Tables: The "Dashboard Scoreboard" is the only table allowed.
 formatting: Use '###' for all section headers.
 
 Output Structure:
@@ -117,16 +117,15 @@ def pdf_to_images(pdf_path):
     print(f"Converting PDF to images for Vision...")
     doc = fitz.open(pdf_path)
     images = []
-    # Process all pages
-    for page_num in range(len(doc)): 
+    # Production: Limit to first 25 pages (skipping glossary/legal)
+    for page_num in range(min(len(doc), 25)): 
         page = doc.load_page(page_num)
-        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3)) # 3x zoom for better resolution
+        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3)) # 3x zoom for maximum clarity
         img_data = pix.tobytes("jpeg")
         base64_img = base64.b64encode(img_data).decode('utf-8')
         images.append(base64_img)
     print(f"Converted {len(images)} pages to images.")
     return images
-
 # --- Deterministic Scoring Logic ---
 
 import math
