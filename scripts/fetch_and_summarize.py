@@ -43,6 +43,11 @@ Output Structure:
 
 Create a table with these 6 Dials (Score 0-10, where 10 = Maximum Intensity/Risk):
 
+| Dial | Score (0-10) | Justification (Data Source: Daily Market Snapshot) |
+|---|---|---|
+| Growth Impulse | [Score] | [Brief justification] |
+| Inflation Pressure | [Score] | [Brief justification] |
+| ... | ... | ... |
 
 Growth Impulse: (0=Recession, 10=Boom)
 
@@ -134,7 +139,7 @@ def pdf_to_images(pdf_path):
     # Limit to first 10 pages to avoid huge payloads if PDF is unexpectedly large
     for page_num in range(min(len(doc), 10)): 
         page = doc.load_page(page_num)
-        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2)) # 2x zoom for better resolution
+        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3)) # 3x zoom for better resolution
         img_data = pix.tobytes("jpeg")
         base64_img = base64.b64encode(img_data).decode('utf-8')
         images.append(base64_img)
