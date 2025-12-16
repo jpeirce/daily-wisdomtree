@@ -8,7 +8,6 @@ on:
 jobs:
   run-summary:
     runs-on: ubuntu-latest
-    SUMMARIZE_PROVIDER: GEMINI # <-- Add this line
     steps:
       - uses: actions/checkout@v3
       
@@ -29,6 +28,7 @@ jobs:
           SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          SUMMARIZE_PROVIDER: GEMINI
         run: python scripts/fetch_and_summarize.py
         
       - name: Archive summaries
