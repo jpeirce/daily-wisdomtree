@@ -78,33 +78,40 @@ formatting: Use '###' for all section headers.
 
 Output Structure:
 
+### 0. Visual Data Extraction (Internal Monologue - Brief)
+*Instructions: Briefly scan the Section 0 CME Image. Identify the "TOTAL" or "OVERALL" row for Equities and Rates. Note if Open Interest (OI) is positive (+) or negative (-) and if Volume is heavy.*
+
 ### 1. The Dashboard (Scoreboard)
 
 Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
+*In the 'Justification' column, reference the visual evidence from the CME images (Volume/OI) to support the score.*
 
-| Dial | Score (0-10) | Justification (Data Source: Daily Market Snapshot) |
+| Dial | Score (0-10) | Justification (Data Source: Daily Market Snapshot + CME) |
 |---|---|---|
 | Growth Impulse | [Score] | [Brief justification] |
 | Inflation Pressure | [Score] | [Brief justification] |
-| Liquidity Conditions | [Score] | [Brief justification] |
+| Liquidity Conditions | [Score] | [Look at CME Image: Is Volume high (deep liquidity) or low?] |
 | Credit Stress | [Score] | [Brief justification] |
 | Valuation Risk | [Score] | [Brief justification] |
-| Risk Appetite | [Score] | [Brief justification] |
+| Risk Appetite | [Score] | [Look at CME Image: Is Open Interest rising (Risk On) or falling?] |
 
 ### 2. Executive Takeaway (5–7 sentences)
 [Regime Name, The Driver, The Pivot]
+*Explicitly state if the CME positioning (OI changes) confirms the price action seen in the WisdomTree charts.*
 
 ### 3. The "Fiscal Dominance" Check (Monetary Stress)
 [Data, Implication]
 
 ### 4. Rates & Curve Profile
 [Shape, Implication]
+*CRITICAL: Compare the Yield Curve shape (WisdomTree Image) with CME Rates Open Interest (CME Image). Are rising yields supported by rising OI (Real Selling) or falling OI?*
 
 ### 5. The "Canary in the Coal Mine" (Credit Stress)
 [Data, Implication]
 
 ### 6. The "Engine Room" (Market Breadth)
 [Data, Implication]
+*Synthesize the CME Image data. Compare the 'Aggregate Volume' and 'Open Interest' changes. Is the market leverage expanding or contracting?*
 
 ### 7. Valuation & "Smart Money"
 [Data, International, Implication]
