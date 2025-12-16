@@ -28,10 +28,14 @@ GEMINI_MODEL = "gemini-3-pro-preview"
 # --- Prompts ---
 
 EXTRACTION_PROMPT = """
-You are a data extraction engine. Your job is to extract specific numeric values from the attached financial dashboard PDF.
-Return ONLY a valid JSON object. Do not include markdown formatting (```json) or conversational text.
+You are a precision data extractor. Your job is to read PDF pages containing financial dashboards and extract specific numerical data into valid JSON.
 
-Extract the following keys. If a value is not explicitly present, use null.
+• DO NOT provide commentary, analysis, or summary.
+• ONLY return a valid JSON object.
+• Extract numbers as decimals (e.g., 2.84, not "2.84%" or "two point eight four").
+• If a value is missing or unreadable, use `null`.
+
+Extract the following keys from the PDF.
 
 {
   "hy_spread_current": float, // High Yield Spread (e.g. 2.84)
