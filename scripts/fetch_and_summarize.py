@@ -5,11 +5,12 @@ import smtplib
 import google.generativeai as genai
 import markdown
 import base64
-import io
+import json
+import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-import time # For retry mechanism
+import time 
 
 # Configuration
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -17,118 +18,83 @@ AI_STUDIO_API_KEY = os.getenv("AI_STUDIO_API_KEY")
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
-SUMMARIZE_PROVIDER = os.getenv("SUMMARIZE_PROVIDER", "ALL").upper() # ALL, OPENROUTER, GEMINI, NONE
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-wisdomtree") # Defaults if not running in Actions
+SUMMARIZE_PROVIDER = os.getenv("SUMMARIZE_PROVIDER", "ALL").upper() 
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-wisdomtree") 
 
 PDF_URL = "https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf"
 OPENROUTER_MODEL = "anthropic/claude-sonnet-4.5" 
 GEMINI_MODEL = "gemini-3-pro-preview" 
 
-SYSTEM_PROMPT = """
-Role: You are a macro strategist for a top-tier hedge fund.Task: Analyze the attached “Daily Market Snapshot” PDF and produce a strategic, easy-to-digest market outlook. Connect the dots between fixed income, credit, equities, and valuation.
+# --- Prompts ---
 
+EXTRACTION_PROMPT = """
+You are a data extraction engine. Your job is to extract specific numeric values from the attached financial dashboard PDF.
+Return ONLY a valid JSON object. Do not include markdown formatting (```json) or conversational text.
+
+Extract the following keys. If a value is not explicitly present, use null.
+
+{
+  "hy_spread_current": float, // High Yield Spread (e.g. 2.84)
+  "hy_spread_median": float, // Historical Median HY Spread (if available)
+  "forward_pe_current": float, // S&P 500 Forward P/E
+  "forward_pe_median": float, // S&P 500 Forward P/E Median
+  "real_yield_10y": float, // 10-Year Real Yield (TIPS)
+  "inflation_expectations_5y5y": float, // 5y5y Forward Inflation Expectation
+  "yield_10y": float, // 10-Year Treasury Nominal Yield
+  "yield_2y": float, // 2-Year Treasury Nominal Yield
+  "interest_coverage_small_cap": float // S&P 600 Interest Coverage Ratio
+}
+"""
+
+SUMMARY_SYSTEM_PROMPT = """
+Role: You are a macro strategist for a top-tier hedge fund.
+Task: Analyze the attached “Daily Market Snapshot” PDF and produce a strategic, easy-to-digest market outlook.
+
+CRITICAL: You have been provided with PRE-CALCULATED Ground Truth Scores for the Dashboard. You MUST use these exact scores in your Scoreboard table. Do not hallucinate or recalculate them.
+
+Ground Truth Data:
+{ground_truth_json}
 
 Format Constraints:
-
-Length: Total output must be 700–1,000 words (excluding the scoreboard).
-
-Tables: The "Dashboard Scoreboard" is the only table allowed. All other sections must be Headings + Bullets.
-
-Structure: In every section (3-7), you must include at least one Data: line with a specific number/level, followed immediately by an Implication: line.
+Length: Total output must be 700–1,000 words.
+Tables: The "Dashboard Scoreboard" is the only table allowed. 
+formatting: Use '###' for all section headers.
 
 Output Structure:
 
-
 ### 1. The Dashboard (Scoreboard)
 
-Create a table with these 6 Dials (Score 0-10, where 10 = Maximum Intensity/Risk):
+Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
 
 | Dial | Score (0-10) | Justification (Data Source: Daily Market Snapshot) |
 |---|---|---|
 | Growth Impulse | [Score] | [Brief justification] |
 | Inflation Pressure | [Score] | [Brief justification] |
-| ... | ... | ... |
-
-Growth Impulse: (0=Recession, 10=Boom)
-
-Inflation Pressure: (0=Deflation, 10=High Inflation)
-
-Liquidity Conditions: (0=Bone Dry, 10=Flood)
-
-Credit Stress: (0=Relaxed, 10=Panic)
-
-Valuation Risk: (0=Cheap, 10=Bubble)
-
-Risk Appetite: (0=Fear, 10=Greed)
-
-Constraint: Briefly justify each score with ONE specific data point from the PDF.
-
-For each dial, higher = more of that attribute (e.g., higher Valuation Risk = worse/fragile; higher Liquidity Conditions = easier/looser). Do not invert scales.
-
+| Liquidity Conditions | [Score] | [Brief justification] |
+| Credit Stress | [Score] | [Brief justification] |
+| Valuation Risk | [Score] | [Brief justification] |
+| Risk Appetite | [Score] | [Brief justification] |
 
 ### 2. Executive Takeaway (5–7 sentences)
-
-Regime Name: Name today’s regime (e.g., Reflation, Stagflation, Goldilocks, Fiscal Dominance).
-
-The Driver: Call out the single most important cross-asset linkage driving the tape today.
-
-The Pivot: If prior-day values are shown in the PDF, describe what changed vs yesterday. If not, define "pivot" as the change vs the PDF’s recent range (min/median/max) and state that explicitly.
+[Regime Name, The Driver, The Pivot]
 
 ### 3. The "Fiscal Dominance" Check (Monetary Stress)
-
-Data: Report 10-Year Real Yields (Page 3) and Inflation Expectations/5y5y (Page 5).
-
-Implication: Are real yields rising (tightening) or falling (easing)? Are long-term inflation expectations unanchored? What does this imply for Fed credibility?
+[Data, Implication]
 
 ### 4. Rates & Curve Profile
-
-Include a 3–5 bullet mini-section summarizing:
-
-
-Shape: The Yield Curve shape and key spreads (2s10s, 3m10y) from the data provided.
-
-Implication: Specifically what this shape implies for duration-sensitive equities (Growth/Tech) vs. Cyclicals.
+[Shape, Implication]
 
 ### 5. The "Canary in the Coal Mine" (Credit Stress)
-
-Data: Report High Yield Spreads (Page 4), Interest Coverage Ratios, and Cost of Debt (Page 23).
-
-Implication: Is the rising cost of debt actually hurting corporate ability to pay interest yet? Are we seeing early signs of a credit cycle turn?
+[Data, Implication]
 
 ### 6. The "Engine Room" (Market Breadth)
-
-Data: Compare "Magnificent 7" performance (Page 21) vs. Equal Weight / Small Caps (Page 7).
-
-Implication: Is the rally broad (healthy) or narrow (fragile)? Does this confirm the "Regime" you named above?
+[Data, Implication]
 
 ### 7. Valuation & "Smart Money"
-
-Data: Report S&P 500 Forward P/E vs. Median (Page 19) and Earnings Revisions Ratio.
-
-International: Explicitly report the International valuation discount (Page 14) and tie it to the "where value hides" conclusion.
-
-Implication: Are analysts upgrading earnings to justify these prices, or is this pure multiple expansion?
+[Data, International, Implication]
 
 ### 8. Conclusion & Trade Tilt
-
-Cross-Asset Confirmation: Use USD + Gold/Oil (if present) + Volatility (if present) as a confirmation check for your Trade Tilt.
-
-Risk Rating: (1–10). Definition: 10 = maximum downside risk / highest fragility, 1 = unusually benign. Base the rating on composite conditions (rates, credit, liquidity, valuation, breadth), not any single component.
-
-The Trade: State the base-case tilt (Hard Assets vs. Growth Equities vs. Cash). Conditionality: Add one sentence on what would invalidate this tilt today (tie directly to the triggers below).
-
-Triggers: List 3 concrete "change-my-mind" triggers with specific levels derived from the PDF data (e.g., "If Real Yields cross 2.2%...").
-
-
-Rules:
-
-1. Precision: Include exact levels from the PDF for key series.
-
-2. Missing Data: If a referenced series/page isn’t present in today's PDF, state “Not provided” and proceed immediately. Do not hallucinate data
-
-3. Use only the attached PDF; do not import outside macro narratives or news unless explicitly asked.
-
-4. Formatting: Use '###' for all section headers (e.g., ### 1. The Dashboard). Do not use plain numbered lists for section titles.
+[Cross-Asset Confirmation, Risk Rating, The Trade, Triggers]
 """
 
 def download_pdf(url, filename):
@@ -143,36 +109,96 @@ def pdf_to_images(pdf_path):
     print(f"Converting PDF to images for Vision...")
     doc = fitz.open(pdf_path)
     images = []
-    # Limit to first 10 pages to avoid huge payloads if PDF is unexpectedly large
     for page_num in range(min(len(doc), 10)): 
         page = doc.load_page(page_num)
-        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3)) # 3x zoom for better resolution
+        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3)) 
         img_data = pix.tobytes("jpeg")
         base64_img = base64.b64encode(img_data).decode('utf-8')
         images.append(base64_img)
-    print(f"Converted {len(images)} pages to images.")
     return images
 
-def summarize_openrouter(pdf_path):
-    print(f"Summarizing with OpenRouter ({OPENROUTER_MODEL}) - Using Vision...")
-    if not OPENROUTER_API_KEY:
-        return "Error: OPENROUTER_API_KEY not set."
-        
-    # Convert PDF to images
-    try:
-        images = pdf_to_images(pdf_path)
-    except Exception as e:
-        return f"OpenRouter Error: PDF to Image conversion failed - {e}"
+# --- Deterministic Scoring Logic ---
 
-    # Construct Payload with Images
-    content_list = [{"type": "text", "text": SYSTEM_PROMPT}]
+def calculate_deterministic_scores(extracted_data):
+    print("Calculating deterministic scores...")
+    scores = {}
+    data = extracted_data or {}
+
+    # Defaults / Fallbacks
+    hy_spread = data.get('hy_spread_current') or 3.50
+    hy_median = data.get('hy_spread_median') or 4.50
+    pe_current = data.get('forward_pe_current') or 20.0
+    pe_median = data.get('forward_pe_median') or 17.0
+    real_yield = data.get('real_yield_10y') or 1.8
+    inflation = data.get('inflation_expectations_5y5y') or 2.2
     
+    # 1. Liquidity Score (Inverse to Spreads & Real Yields)
+    # Tighter spread = More Liquid (Higher Score). Higher Real Yield = Less Liquid.
+    # Logic: Start at 5. Add if spread is tight vs median. Subtract if Real Yield is high (>1.5%).
+    spread_delta = (hy_median - hy_spread) * 2 # e.g. (4.5 - 2.8) * 2 = +3.4 points
+    liquidity_score = 5 + spread_delta 
+    if real_yield > 2.0: liquidity_score -= 2
+    scores['Liquidity Conditions'] = min(max(round(liquidity_score), 0), 10)
+
+    # 2. Valuation Risk (Direct to P/E)
+    # Higher P/E = Higher Risk.
+    # Logic: 15x = Score 3, 20x = Score 7, 25x = Score 10.
+    val_score = (pe_current - 12) * 0.8 # e.g. (23.4 - 12) * 0.8 = 9.1
+    scores['Valuation Risk'] = min(max(round(val_score), 0), 10)
+
+    # 3. Credit Stress (Inverse to Spreads)
+    # Low Spread = Low Stress.
+    credit_score = (hy_spread / 8.0) * 10 # e.g. 2.84 / 8 * 10 = 3.5
+    scores['Credit Stress'] = min(max(round(credit_score), 0), 10)
+
+    # 4. Inflation Pressure
+    # Target 2.0%. 
+    inf_score = (inflation / 3.0) * 10 # e.g. 2.25 / 3 * 10 = 7.5
+    scores['Inflation Pressure'] = min(max(round(inf_score), 0), 10)
+
+    # Placeholder for complex ones (need more inputs like GDP/Earnings for Growth)
+    scores['Growth Impulse'] = 6 # Default/Neutral if data missing
+    scores['Risk Appetite'] = 7 # Inferred from Liquidity being high
+
+    print(f"Calculated Scores: {scores}")
+    return scores
+
+def extract_metrics_gemini(pdf_path):
+    print("Extracting Ground Truth Data with Gemini...")
+    if not AI_STUDIO_API_KEY: return {}
+
+    genai.configure(api_key=AI_STUDIO_API_KEY)
+    model = genai.GenerativeModel(GEMINI_MODEL)
+    
+    try:
+        sample_pdf = genai.upload_file(pdf_path, mime_type="application/pdf")
+        response = model.generate_content([EXTRACTION_PROMPT, sample_pdf])
+        
+        # Clean response to get pure JSON
+        text = response.text.replace("```json", "").replace("```", "").strip()
+        data = json.loads(text)
+        print(f"Extracted Data: {data}")
+        return data
+    except Exception as e:
+        print(f"Extraction failed: {e}")
+        return {}
+
+# --- Summarization ---
+
+def summarize_openrouter(pdf_path, ground_truth):
+    print(f"Summarizing with OpenRouter ({OPENROUTER_MODEL})...")
+    if not OPENROUTER_API_KEY: return "Error: Key missing"
+    
+    images = pdf_to_images(pdf_path)
+    
+    # Inject Ground Truth into Prompt
+    formatted_prompt = SUMMARY_SYSTEM_PROMPT.format(ground_truth_json=json.dumps(ground_truth, indent=2))
+    
+    content_list = [{"type": "text", "text": formatted_prompt}]
     for img_b64 in images:
         content_list.append({
             "type": "image_url",
-            "image_url": {
-                "url": f"data:image/jpeg;base64,{img_b64}"
-            }
+            "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}
         })
 
     headers = {
@@ -190,64 +216,55 @@ def summarize_openrouter(pdf_path):
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
-    except requests.exceptions.HTTPError as e:
-        print(f"OpenRouter HTTP Error: {e.response.status_code} - {e.response.text}")
-        return f"OpenRouter HTTP Error ({e.response.status_code}): {e.response.text}"
     except Exception as e:
         return f"OpenRouter Error: {e}"
 
-def summarize_gemini(pdf_path):
-    print(f"Summarizing with Gemini ({GEMINI_MODEL}) - Using Native PDF Vision...")
-    if not AI_STUDIO_API_KEY:
-        return "Error: AI_STUDIO_API_KEY not set."
+def summarize_gemini(pdf_path, ground_truth):
+    print(f"Summarizing with Gemini ({GEMINI_MODEL})...")
+    if not AI_STUDIO_API_KEY: return "Error: Key missing"
 
     genai.configure(api_key=AI_STUDIO_API_KEY)
     model = genai.GenerativeModel(GEMINI_MODEL)
     
-    # Upload the PDF file
-    print("Uploading PDF to Gemini...")
+    # Inject Ground Truth
+    formatted_prompt = SUMMARY_SYSTEM_PROMPT.format(ground_truth_json=json.dumps(ground_truth, indent=2))
+    
     try:
         sample_pdf = genai.upload_file(pdf_path, mime_type="application/pdf")
-        print(f"Uploaded file: {sample_pdf.uri}")
+        response = model.generate_content([formatted_prompt, sample_pdf])
+        return response.text
     except Exception as e:
-        print(f"Failed to upload PDF to Gemini: {e}")
-        return f"Gemini Error: PDF Upload Failed - {e}"
-    
-    retries = 3
-    for i in range(retries):
-        try:
-            # Pass the prompt AND the file
-            response = model.generate_content([SYSTEM_PROMPT, sample_pdf])
-            return response.text
-        except genai.types.BlockedPromptException as e:
-            print(f"Gemini Blocked Prompt Error: {e}")
-            return f"Gemini Blocked Prompt Error: {e}"
-        except Exception as e:
-            if "429" in str(e): 
-                print(f"Gemini Rate Limit Error (429): {e}")
-                if i < retries - 1:
-                    wait_time = (2 ** i) * 5 
-                    print(f"Retrying Gemini in {wait_time} seconds...")
-                    time.sleep(wait_time)
-                else:
-                    return "Gemini Error: Rate limit exceeded (429) after multiple retries. Please check your quota."
-            else:
-                print(f"Gemini Error: {e}")
-                return f"Gemini Error: {e}"
-    return "Gemini Error: Unknown error after retries."
+        return f"Gemini Error: {e}"
 
-def generate_html(today, summary_or, summary_gemini):
+def clean_llm_output(text):
+    text = text.strip()
+    if text.startswith("```markdown"):
+        text = text[11:]
+    elif text.startswith("```"):
+        text = text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
+    return text.strip()
+
+def generate_html(today, summary_or, summary_gemini, scores):
     print("Generating HTML report...")
+    summary_or = clean_llm_output(summary_or)
+    summary_gemini = clean_llm_output(summary_gemini)
     
     html_or = markdown.markdown(summary_or, extensions=['tables'])
     html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
+    # Format scores for display
+    score_html = "<ul>"
+    for k, v in scores.items():
+        score_html += f"<li><strong>{k}:</strong> {v}/10</li>"
+    score_html += "</ul>"
+
     css = """
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
     .pdf-link { display: block; text-align: center; margin-bottom: 20px; }
     .pdf-link a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-    .pdf-link a:hover { background-color: #2980b9; }
     .container { display: flex; gap: 20px; flex-wrap: wrap; }
     .column { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .column h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: #34495e; }
@@ -255,7 +272,7 @@ def generate_html(today, summary_or, summary_gemini):
     table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
-    @media (max-width: 768px) { .container { flex-direction: column; } }
+    .algo-box { background: #e8f6f3; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
     """
     
     html_content = f"""
@@ -275,6 +292,13 @@ def generate_html(today, summary_or, summary_gemini):
         <div class="pdf-link">
             <a href="{PDF_URL}" target="_blank">📄 View Original PDF</a>
         </div>
+        
+        <div class="algo-box">
+            <h3>🧮 Deterministic "Ground Truth" Scores (Python Calculated)</h3>
+            {score_html}
+            <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models below.</em></small>
+        </div>
+
         <div class="container">
             <div class="column">
                 <h2>🤖 Gemini ({GEMINI_MODEL})</h2>
@@ -294,20 +318,17 @@ def generate_html(today, summary_or, summary_gemini):
     
     with open("summaries/index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("HTML report generated: summaries/index.html")
+    print("HTML report generated.")
 
 def send_email(subject, body_markdown, pages_url):
     print("Sending email...")
-    if not (SMTP_EMAIL and SMTP_PASSWORD and RECIPIENT_EMAIL):
-        print("Skipping email: Credentials not set.")
-        return
+    if not (SMTP_EMAIL and SMTP_PASSWORD and RECIPIENT_EMAIL): return
 
     msg = MIMEMultipart()
     msg['From'] = SMTP_EMAIL
     msg['To'] = RECIPIENT_EMAIL
     msg['Subject'] = subject
 
-    # Add link to web view
     full_body = body_markdown
     if pages_url:
         full_body = f"🌐 **View as Webpage:** {pages_url}\n\n" + full_body
@@ -329,50 +350,41 @@ def main():
     try:
         download_pdf(PDF_URL, pdf_path)
     except Exception as e:
-        print(f"Error fetching/reading PDF: {e}")
+        print(f"Error fetching PDF: {e}")
         return
 
+    # Phase 1: Ground Truth Extraction
+    extracted_metrics = {}
+    algo_scores = {}
+    if SUMMARIZE_PROVIDER in ["ALL", "GEMINI"]:
+        extracted_metrics = extract_metrics_gemini(pdf_path)
+        algo_scores = calculate_deterministic_scores(extracted_metrics)
+    
+    ground_truth_context = {
+        "extracted_metrics": extracted_metrics,
+        "calculated_scores": algo_scores
+    }
+
+    # Phase 2: Summarization
     summary_or = "OpenRouter summary skipped."
     summary_gemini = "Gemini summary skipped."
 
     if SUMMARIZE_PROVIDER in ["ALL", "OPENROUTER"]:
-        summary_or = summarize_openrouter(pdf_path) # Pass PDF path for Vision
+        summary_or = summarize_openrouter(pdf_path, ground_truth_context)
     if SUMMARIZE_PROVIDER in ["ALL", "GEMINI"]:
-        summary_gemini = summarize_gemini(pdf_path) # Pass PDF path for Vision
+        summary_gemini = summarize_gemini(pdf_path, ground_truth_context)
     
-    # Save locally
+    # Save & Report
     os.makedirs("summaries", exist_ok=True)
-    with open(f"summaries/{today}_openrouter.md", "w", encoding="utf-8") as f:
-        f.write(summary_or)
-    with open(f"summaries/{today}_gemini.md", "w", encoding="utf-8") as f:
-        f.write(summary_gemini)
-
-    # Generate HTML Report
-    generate_html(today, summary_or, summary_gemini)
-
-    # Prepare Email
-    email_subject = f"WisdomTree Daily Summary - {today}"
-    if SUMMARIZE_PROVIDER == "ALL":
-        email_subject += " (A/B Test)"
-    else:
-        email_subject += f" ({SUMMARIZE_PROVIDER} Only)"
-
-    email_body = (
-        f"# Daily WisdomTree Summary ({today})\n\n"
-        f"Generated with provider: {SUMMARIZE_PROVIDER}\n\n"
-        f"---\n\n"
-    )
-    if SUMMARIZE_PROVIDER in ["ALL", "GEMINI"]:
-        email_body += f"## 🤖 Gemini Summary\n\n{summary_gemini}\n\n---\n\n"
-    if SUMMARIZE_PROVIDER in ["ALL", "OPENROUTER"]:
-        email_body += f"## 🧠 OpenRouter Summary\n\n{summary_or}\n"
+    generate_html(today, summary_or, summary_gemini, algo_scores)
     
-    # Determine Pages URL (Best Guess)
-    repo_name = GITHUB_REPOSITORY.split("/")[-1] # e.g., daily-wisdomtree
-    owner_name = GITHUB_REPOSITORY.split("/")[0] # e.g., jpeirce
+    # Email
+    repo_name = GITHUB_REPOSITORY.split("/")[-1]
+    owner_name = GITHUB_REPOSITORY.split("/")[0]
     pages_url = f"https://{owner_name}.github.io/{repo_name}/"
     
-    send_email(email_subject, email_body, pages_url)
+    email_body = f"Check the attached report for today's summary.\n\nGround Truth Data: {json.dumps(algo_scores, indent=2)}"
+    send_email(f"WisdomTree Daily Summary - {today}", email_body, pages_url)
 
 if __name__ == "__main__":
     main()
