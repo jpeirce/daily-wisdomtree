@@ -269,6 +269,9 @@ def generate_html(today, summary_or, summary_gemini):
     </head>
     <body>
         <h1>WisdomTree Daily Summary ({today})</h1>
+        <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
+            This is an independently generated summary of the publicly available WisdomTree Daily Dashboard. Not affiliated with WisdomTree Investments.
+        </div>
         <div class="pdf-link">
             <a href="{PDF_URL}" target="_blank">📄 View Original PDF</a>
         </div>
