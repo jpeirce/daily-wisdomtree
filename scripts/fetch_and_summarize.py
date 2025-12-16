@@ -19,7 +19,7 @@ SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
 SUMMARIZE_PROVIDER = os.getenv("SUMMARIZE_PROVIDER", "ALL").upper() 
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-wisdomtree") 
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-dashboard") # Defaults if not running in Actions 
 
 PDF_URL = "https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf"
 OPENROUTER_MODEL = "anthropic/claude-sonnet-4.5" 
@@ -285,11 +285,11 @@ def generate_html(today, summary_or, summary_gemini, scores):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WisdomTree Daily Summary - {today}</title>
+        <title>Daily Dashboard - {today}</title>
         <style>{css}</style>
     </head>
     <body>
-        <h1>WisdomTree Daily Summary ({today})</h1>
+        <h1>Daily Dashboard ({today})</h1>
         <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
             This is an independently generated summary of the publicly available WisdomTree Daily Dashboard. Not affiliated with WisdomTree Investments.
         </div>
@@ -388,7 +388,7 @@ def main():
     pages_url = f"https://{owner_name}.github.io/{repo_name}/"
     
     email_body = f"Check the attached report for today's summary.\n\nGround Truth Data: {json.dumps(algo_scores, indent=2)}"
-    send_email(f"WisdomTree Daily Summary - {today}", email_body, pages_url)
+    send_email(f"Daily Dashboard - {today}", email_body, pages_url)
 
 if __name__ == "__main__":
     main()

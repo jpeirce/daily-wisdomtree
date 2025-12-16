@@ -1,4 +1,4 @@
-# WisdomTree Daily Summary Bot
+# Daily Dashboard Summary Bot
 
 This project is an automated system designed to fetch, summarize, and deliver daily market insights from WisdomTree's "Daily Dashboard" PDF. It leverages large language models (LLMs) from both OpenRouter (GPT) and Google AI Studio (Gemini) for comparative analysis, generates a styled HTML report, deploys it to GitHub Pages, and sends a daily email notification.
 
@@ -51,7 +51,7 @@ For the HTML report to be accessible via GitHub Pages:
 4.  Under **Branch**, select `gh-pages` and `/ (root)`.
 5.  Click **Save**.
 
-The page will be live at `https://[YOUR_USERNAME].github.io/[YOUR_REPOSITORY_NAME]/` (e.g., `https://jpeirce.github.io/daily-wisdomtree/`).
+The page will be live at `https://[YOUR_USERNAME].github.io/daily-dashboard/` (e.g., `https://jpeirce.github.io/daily-dashboard/`).
 
 ## Configuration
 
@@ -66,8 +66,8 @@ The `scripts/fetch_and_summarize.py` script respects the following environment v
 
 ## Running Locally (for testing)
 
-1.  Clone the repository: `git clone https://github.com/jpeirce/daily-wisdomtree.git`
-2.  Navigate into the directory: `cd daily-wisdomtree`
+1.  Clone the repository: `git clone https://github.com/jpeirce/daily-dashboard.git`
+2.  Navigate into the directory: `cd daily-dashboard`
 3.  Install dependencies: `pip install -r requirements.txt`
 4.  Set environment variables (replace with your actual keys and emails):
     ```bash
@@ -78,7 +78,7 @@ The `scripts/fetch_and_summarize.py` script respects the following environment v
     export SMTP_PASSWORD="your_app_password"
     export RECIPIENT_EMAIL="recipient@example.com"
     export SUMMARIZE_PROVIDER="ALL" # Or GEMINI, OPENROUTER, NONE
-    export GITHUB_REPOSITORY="your_username/daily-wisdomtree"
+    export GITHUB_REPOSITORY="your_username/daily-dashboard"
 
     # Windows (PowerShell)
     $env:OPENROUTER_API_KEY="your_openrouter_key"
@@ -87,7 +87,7 @@ The `scripts/fetch_and_summarize.py` script respects the following environment v
     $env:SMTP_PASSWORD="your_app_password"
     $env:RECIPIENT_EMAIL="recipient@example.com"
     $env:SUMMARIZE_PROVIDER="ALL"
-    $env:GITHUB_REPOSITORY="your_username/daily-wisdomtree"
+    $env:GITHUB_REPOSITORY="your_username/daily-dashboard"
     ```
 5.  Run the script: `python scripts/fetch_and_summarize.py`
 
