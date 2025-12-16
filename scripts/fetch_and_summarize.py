@@ -36,10 +36,10 @@ Tables: The "Dashboard Scoreboard" is the only table allowed. All other sections
 
 Structure: In every section (3-7), you must include at least one Data: line with a specific number/level, followed immediately by an Implication: line.
 
-Output Structure: 
+Output Structure:
 
 
-1. The Dashboard (Scoreboard)
+### 1. The Dashboard (Scoreboard)
 
 Create a table with these 6 Dials (Score 0-10, where 10 = Maximum Intensity/Risk):
 
@@ -66,37 +66,42 @@ Constraint: Briefly justify each score with ONE specific data point from the PDF
 For each dial, higher = more of that attribute (e.g., higher Valuation Risk = worse/fragile; higher Liquidity Conditions = easier/looser). Do not invert scales.
 
 
-2. Executive Takeaway (5–7 sentences)
+### 2. Executive Takeaway (5–7 sentences)
 
 Regime Name: Name today’s regime (e.g., Reflation, Stagflation, Goldilocks, Fiscal Dominance).
 
 The Driver: Call out the single most important cross-asset linkage driving the tape today.
 
 The Pivot: If prior-day values are shown in the PDF, describe what changed vs yesterday. If not, define "pivot" as the change vs the PDF’s recent range (min/median/max) and state that explicitly.
-3. The "Fiscal Dominance" Check (Monetary Stress)
+
+### 3. The "Fiscal Dominance" Check (Monetary Stress)
 
 Data: Report 10-Year Real Yields (Page 3) and Inflation Expectations/5y5y (Page 5).
 
 Implication: Are real yields rising (tightening) or falling (easing)? Are long-term inflation expectations unanchored? What does this imply for Fed credibility?
-4. Rates & Curve Profile
 
-Include a 3–5 bullet mini-section summarizing: 
+### 4. Rates & Curve Profile
+
+Include a 3–5 bullet mini-section summarizing:
 
 
 Shape: The Yield Curve shape and key spreads (2s10s, 3m10y) from the data provided.
 
 Implication: Specifically what this shape implies for duration-sensitive equities (Growth/Tech) vs. Cyclicals.
-5. The "Canary in the Coal Mine" (Credit Stress)
+
+### 5. The "Canary in the Coal Mine" (Credit Stress)
 
 Data: Report High Yield Spreads (Page 4), Interest Coverage Ratios, and Cost of Debt (Page 23).
 
 Implication: Is the rising cost of debt actually hurting corporate ability to pay interest yet? Are we seeing early signs of a credit cycle turn?
-6. The "Engine Room" (Market Breadth)
+
+### 6. The "Engine Room" (Market Breadth)
 
 Data: Compare "Magnificent 7" performance (Page 21) vs. Equal Weight / Small Caps (Page 7).
 
 Implication: Is the rally broad (healthy) or narrow (fragile)? Does this confirm the "Regime" you named above?
-7. Valuation & "Smart Money"
+
+### 7. Valuation & "Smart Money"
 
 Data: Report S&P 500 Forward P/E vs. Median (Page 19) and Earnings Revisions Ratio.
 
@@ -104,7 +109,7 @@ International: Explicitly report the International valuation discount (Page 14) 
 
 Implication: Are analysts upgrading earnings to justify these prices, or is this pure multiple expansion?
 
-8. Conclusion & Trade Tilt
+### 8. Conclusion & Trade Tilt
 
 Cross-Asset Confirmation: Use USD + Gold/Oil (if present) + Volatility (if present) as a confirmation check for your Trade Tilt.
 
@@ -122,6 +127,8 @@ Rules:
 2. Missing Data: If a referenced series/page isn’t present in today's PDF, state “Not provided” and proceed immediately. Do not hallucinate data
 
 3. Use only the attached PDF; do not import outside macro narratives or news unless explicitly asked.
+
+4. Formatting: Use '###' for all section headers (e.g., ### 1. The Dashboard). Do not use plain numbered lists for section titles.
 """
 
 def download_pdf(url, filename):
