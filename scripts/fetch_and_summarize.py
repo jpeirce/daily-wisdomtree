@@ -21,7 +21,7 @@ SUMMARIZE_PROVIDER = os.getenv("SUMMARIZE_PROVIDER", "ALL").upper() # ALL, OPENR
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "jpeirce/daily-wisdomtree") # Defaults if not running in Actions
 
 PDF_URL = "https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf"
-OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet" 
+OPENROUTER_MODEL = "anthropic/claude-sonnet-4.5" 
 GEMINI_MODEL = "gemini-3-pro-preview" 
 
 SYSTEM_PROMPT = """
