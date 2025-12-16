@@ -250,6 +250,26 @@ def clean_llm_output(text):
         text = text[:-3]
     return text.strip()
 
+def get_score_color(category, score):
+    # Logic: Define what is "Good" (Green) vs "Bad" (Red)
+    # High Score (8-10) = Intense. Low Score (0-3) = Weak.
+    
+    # Categories where High = Risk/Bad (Red)
+    high_risk_categories = ["Inflation Pressure", "Credit Stress", "Valuation Risk"]
+    
+    # Categories where High = Good/Bullish (Green)
+    high_good_categories = ["Growth Impulse", "Liquidity Conditions", "Risk Appetite"]
+    
+    if category in high_risk_categories:
+        if score >= 7: return "#e74c3c" # Red (High Risk)
+        if score <= 4: return "#27ae60" # Green (Safe)
+        
+    if category in high_good_categories:
+        if score >= 7: return "#27ae60" # Green (Strong)
+        if score <= 4: return "#e74c3c" # Red (Weak)
+        
+    return "#2c3e50" # Default Dark Blue/Black
+
 def generate_html(today, summary_or, summary_gemini, scores):
     print("Generating HTML report...")
     summary_or = clean_llm_output(summary_or)
@@ -258,10 +278,11 @@ def generate_html(today, summary_or, summary_gemini, scores):
     html_or = markdown.markdown(summary_or, extensions=['tables'])
     html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
-    # Format scores for display
-    score_html = "<ul>"
+    # Format scores for display with Colors
+    score_html = "<ul style='list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px;'>"
     for k, v in scores.items():
-        score_html += f"<li><strong>{k}:</strong> {v}/10</li>"
+        color = get_score_color(k, v)
+        score_html += f"<li style='background: white; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1 0 140px; text-align: center; border-left: 5px solid {color};'><strong>{k}</strong><br><span style='font-size: 1.5em; color: {color}; font-weight: bold;'>{v}/10</span></li>"
     score_html += "</ul>"
 
     css = """
