@@ -22,6 +22,106 @@ PDF_URL = "https://www.wisdomtree.com/investments/-/media/us-media-files/documen
 OPENROUTER_MODEL = "openai/gpt-5.2" # or gpt-4o, etc.
 GEMINI_MODEL = "gemini-3-pro-preview" 
 
+SYSTEM_PROMPT = """
+Role: You are a macro strategist for a top-tier hedge fund.Task: Analyze the attached “Daily Market Snapshot” PDF and produce a strategic, easy-to-digest market outlook. Connect the dots between fixed income, credit, equities, and valuation.
+
+
+Format Constraints:
+
+Length: Total output must be 700–1,000 words (excluding the scoreboard).
+
+Tables: The "Dashboard Scoreboard" is the only table allowed. All other sections must be Headings + Bullets.
+
+Structure: In every section (3-7), you must include at least one Data: line with a specific number/level, followed immediately by an Implication: line.
+
+Output Structure:
+
+
+1. The Dashboard (Scoreboard)
+
+Create a table with these 6 Dials (Score 0-10, where 10 = Maximum Intensity/Risk):
+
+
+Growth Impulse: (0=Recession, 10=Boom)
+
+Inflation Pressure: (0=Deflation, 10=High Inflation)
+
+Liquidity Conditions: (0=Bone Dry, 10=Flood)
+
+Credit Stress: (0=Relaxed, 10=Panic)
+
+Valuation Risk: (0=Cheap, 10=Bubble)
+
+Risk Appetite: (0=Fear, 10=Greed)
+
+Constraint: Briefly justify each score with ONE specific data point from the PDF.
+
+For each dial, higher = more of that attribute (e.g., higher Valuation Risk = worse/fragile; higher Liquidity Conditions = easier/looser). Do not invert scales.
+
+
+2. Executive Takeaway (5–7 sentences)
+
+Regime Name: Name today’s regime (e.g., Reflation, Stagflation, Goldilocks, Fiscal Dominance).
+
+The Driver: Call out the single most important cross-asset linkage driving the tape today.
+
+The Pivot: If prior-day values are shown in the PDF, describe what changed vs yesterday. If not, define "pivot" as the change vs the PDF’s recent range (min/median/max) and state that explicitly.
+
+3. The "Fiscal Dominance" Check (Monetary Stress)
+
+Data: Report 10-Year Real Yields (Page 3) and Inflation Expectations/5y5y (Page 5).
+
+Implication: Are real yields rising (tightening) or falling (easing)? Are long-term inflation expectations unanchored? What does this imply for Fed credibility?
+
+4. Rates & Curve Profile
+
+Include a 3–5 bullet mini-section summarizing:
+
+
+Shape: The Yield Curve shape and key spreads (2s10s, 3m10y) from the data provided.
+
+Implication: Specifically what this shape implies for duration-sensitive equities (Growth/Tech) vs. Cyclicals.
+
+5. The "Canary in the Coal Mine" (Credit Stress)
+
+Data: Report High Yield Spreads (Page 4), Interest Coverage Ratios, and Cost of Debt (Page 23).
+
+Implication: Is the rising cost of debt actually hurting corporate ability to pay interest yet? Are we seeing early signs of a credit cycle turn?
+
+6. The "Engine Room" (Market Breadth)
+
+Data: Compare "Magnificent 7" performance (Page 21) vs. Equal Weight / Small Caps (Page 7).
+
+Implication: Is the rally broad (healthy) or narrow (fragile)? Does this confirm the "Regime" you named above?
+
+7. Valuation & "Smart Money"
+
+Data: Report S&P 500 Forward P/E vs. Median (Page 19) and Earnings Revisions Ratio.
+
+International: Explicitly report the International valuation discount (Page 14) and tie it to the "where value hides" conclusion.
+
+Implication: Are analysts upgrading earnings to justify these prices, or is this pure multiple expansion?
+
+8. Conclusion & Trade Tilt
+
+Cross-Asset Confirmation: Use USD + Gold/Oil (if present) + Volatility (if present) as a confirmation check for your Trade Tilt.
+
+Risk Rating: (1–10). Definition: 10 = maximum downside risk / highest fragility, 1 = unusually benign. Base the rating on composite conditions (rates, credit, liquidity, valuation, breadth), not any single component.
+
+The Trade: State the base-case tilt (Hard Assets vs. Growth Equities vs. Cash). Conditionality: Add one sentence on what would invalidate this tilt today (tie directly to the triggers below).
+
+Triggers: List 3 concrete "change-my-mind" triggers with specific levels derived from the PDF data (e.g., "If Real Yields cross 2.2%...").
+
+
+Rules:
+
+1. Precision: Include exact levels from the PDF for key series.
+
+2. Missing Data: If a referenced series/page isn’t present in today's PDF, state “Not provided” and proceed immediately. Do not hallucinate data
+
+3. Use only the attached PDF; do not import outside macro narratives or news unless explicitly asked.
+"""
+
 def download_pdf(url, filename):
     print(f"Downloading PDF from {url}...")
     response = requests.get(url)
@@ -42,11 +142,8 @@ def summarize_openrouter(text):
     if not OPENROUTER_API_KEY:
         return "Error: OPENROUTER_API_KEY not set."
         
-    prompt = (
-        "You are a financial analyst AI. Summarize the key data and market signals from the following "
-        "Daily Dashboard. The summary should be ~800 words, include markdown formatting, and highlight "
-        "macro trends, valuation signals, sentiment shifts, and market breadth.\n\n" + text
-    )
+    prompt = f"{SYSTEM_PROMPT}\n\nDATA:\n{text}"
+    
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "HTTP-Referer": "https://github.com/jpeirce/daily-wisdomtree",
@@ -75,12 +172,7 @@ def summarize_gemini(text):
     genai.configure(api_key=AI_STUDIO_API_KEY)
     model = genai.GenerativeModel(GEMINI_MODEL)
     
-    prompt = (
-        "You are a financial analyst AI. Summarize the key data and market signals from the following "
-        "Daily Dashboard text. The summary should be ~800 words, include markdown formatting, and highlight "
-        "macro trends, valuation signals, sentiment shifts, and market breadth. "
-        "Structure it clearly with headers.\n\n" + text
-    )
+    prompt = f"{SYSTEM_PROMPT}\n\nDATA:\n{text}"
     
     retries = 3
     for i in range(retries):
@@ -107,8 +199,8 @@ def summarize_gemini(text):
 def generate_html(today, summary_or, summary_gemini):
     print("Generating HTML report...")
     
-    html_or = markdown.markdown(summary_or)
-    html_gemini = markdown.markdown(summary_gemini)
+    html_or = markdown.markdown(summary_or, extensions=['tables'])
+    html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
     css = """
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
@@ -117,6 +209,9 @@ def generate_html(today, summary_or, summary_gemini):
     .column { flex: 1; min-width: 300px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .column h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; color: #34495e; }
     .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
     @media (max-width: 768px) { .container { flex-direction: column; } }
     """
     
