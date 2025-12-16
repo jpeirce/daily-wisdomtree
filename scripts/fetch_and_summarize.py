@@ -402,7 +402,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details):
     html_or = markdown.markdown(summary_or, extensions=['tables'])
     html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
-    score_html = "<ul style='list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px;">
+    score_html = "<ul style='list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px;'>"
     for k, v in scores.items():
         color = get_score_color(k, v)
         detail_text = details.get(k, "Unknown")
