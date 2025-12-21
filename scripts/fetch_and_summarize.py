@@ -96,11 +96,12 @@ B. THE "FUTURES vs. OPTIONS" GATE (Evaluate Separately per Asset Class):
 
 C. PRICE TREND & STALENESS CHECK (Priority: Live Data > WisdomTree PDF):
    * **Step 1: Check Ground Truth Data.**
-     * IF `sp500_trend_status` exists in Ground Truth (from yfinance):
+     * IF `sp500_trend_status` exists and is not "Unknown":
        * **Trend Status** = The value provided in `sp500_trend_status` (e.g., "Trending Up", "Flat").
        * **Status** = "Fresh" (Live data is always fresh).
-       * **Ignore** the WisdomTree PDF chart for trend determination (it is often stale).
-   * **Step 2: Fallback to PDF (Only if Live Data is missing):**
+       * **MUST CITE:** You must quote the `sp500_trend_audit` string in your verification block to prove the source.
+       * **Ignore** the WisdomTree PDF chart for trend determination.
+   * **Step 2: Fallback to PDF (Only if Live Data is missing/unknown):**
      * **Freshness Rule:** Compare Chart "as of" Date vs. Report Date.
        * Status = **Fresh** ONLY IF trading-day difference is confidently <= 10.
        * Otherwise, Status = **Stale**.
@@ -140,7 +141,8 @@ E. DIRECTIONAL INTERPRETATION (Only if Trend is Valid/Current + Directional Sign
 Print the **DATA VERIFICATION** block below first (exactly as shown). **THEN** continue with the Final Output Structure (Scoreboard, Executive Takeaway, etc.).
 
 > **DATA VERIFICATION:**
-> * **Date Check:** Report Date: [Date] | S&P Chart "as of": [Date] | Status: [Fresh/Stale]
+> * **Date Check:** Report Date: [Date] | SPX Trend Source: [yfinance/PDF]
+> * **Trend Audit:** [Quote `sp500_trend_audit` here if yfinance used, else "PDF Chart Analysis"]
 > * **Equities:** Futures OI Δ [Signed Val] | Options OI Δ [Signed Val] | Signal: [Type] | Trend Status: [Status] | Direction: [Status]
 > * **Rates:** Futures OI Δ [Signed Val] | Options OI Δ [Signed Val] | Signal: [Type] | Direction: [Status]
 
@@ -158,7 +160,7 @@ Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
 | Liquidity Conditions | [Score] | [Look at CME Image: Is Volume high (deep liquidity) or low?] |
 | Credit Stress | [Score] | [Brief justification] |
 | Valuation Risk | [Score] | [Brief justification] |
-| Risk Appetite | [Score] | [Look at CME Image: Is Open Interest rising (Risk On) or falling?] |
+| Risk Appetite | [Score] | [Is participation/leverage expanding (OI rising) or contracting (OI falling)? Direction depends on Gate.] |
 
 ### 2. Executive Takeaway (5–7 sentences)
 [Regime Name, The Driver, The Pivot]
@@ -233,14 +235,12 @@ def fetch_live_data():
                 current_idx = -2
             else:
                 current_idx = -1
-                
-            # We need enough data: absolute index of current + 21 days lookback
-            # e.g., if current is -1, we need -22 (len >= 22). If current is -2, we need -23 (len >= 23).
-            required_len = abs(current_idx) + 21
             
-            if len(hist_spx) >= required_len:
-                prior_idx = current_idx - 21
-                
+            # We want strictly 21 trading days ago
+            prior_idx = current_idx - 21
+            
+            # Check if we have enough data (absolute value of prior_idx must be within bounds)
+            if abs(prior_idx) <= len(hist_spx):
                 current_close = hist_spx['Close'].iloc[current_idx]
                 prior_close = hist_spx['Close'].iloc[prior_idx]
                 
@@ -261,7 +261,7 @@ def fetch_live_data():
                 
                 print(f"SPX Trend: {trend_status} ({pct_change:.2f}%) | {data['sp500_trend_audit']}")
             else:
-                print(f"Warning: Insufficient SPX data. Rows: {len(hist_spx)}, Required: {required_len}")
+                print(f"Warning: Insufficient SPX data. Rows: {len(hist_spx)}, Required: {abs(prior_idx)}")
                 data['sp500_trend_status'] = "Unknown"
                 data['sp500_1mo_change_pct'] = None
                 data['sp500_trend_audit'] = "Insufficient data"
