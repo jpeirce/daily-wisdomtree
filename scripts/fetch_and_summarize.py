@@ -622,6 +622,24 @@ def generate_html(today, summary_or, summary_gemini, scores, details):
         score_html += f"<li style='background: white; padding: 10px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1 0 140px; text-align: center; border-left: 5px solid {color};'><strong>{k}</strong>{warning}<br><span style='font-size: 1.5em; color: {color}; font-weight: bold;'>{v}/10</span></li>"
     score_html += "</ul>"
 
+    # Build columns conditionally
+    columns_html = ""
+    if "Gemini summary skipped" not in summary_gemini:
+        columns_html += f"""
+            <div class="column">
+                <h2>🤖 Gemini ({GEMINI_MODEL})</h2>
+                {html_gemini}
+            </div>
+        """
+    
+    if "OpenRouter summary skipped" not in summary_or:
+        columns_html += f"""
+            <div class="column">
+                <h2>🧠 OpenRouter ({OPENROUTER_MODEL})</h2>
+                {html_or}
+            </div>
+        """
+
     css = """
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
@@ -685,14 +703,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details):
         </div>
 
         <div class="container">
-            <div class="column">
-                <h2>🤖 Gemini ({GEMINI_MODEL})</h2>
-                {html_gemini}
-            </div>
-            <div class="column">
-                <h2>🧠 OpenRouter ({OPENROUTER_MODEL})</h2>
-                {html_or}
-            </div>
+            {columns_html}
         </div>
         <div class="footer">
             Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
