@@ -222,9 +222,9 @@ def fetch_live_data():
             print(f"Live VIX: {data['vix_index']}")
 
         # Fetch S&P 500 for Trend/Freshness (using ^GSPC Index)
-        # Fetch 3mo to safely handle holidays and strict 21-day lookback
+        # Fetch 2mo to safely handle holidays and strict 21-day lookback
         spx = yf.Ticker("^GSPC")
-        hist_spx = spx.history(period="3mo")
+        hist_spx = spx.history(period="2mo")
         
         # Determine strict "Close-to-Close" indices
         if not hist_spx.empty:
@@ -572,18 +572,37 @@ def clean_llm_output(text, cme_signals=None):
         if "Language normalization applied" not in text:
             text += "\n\n*(Note: Language normalization applied to remove attribution)*"
     
-    # Pass 3: Directional Leakage Validator
+    # Pass 3: Targeted Directional Leakage Validator
     if cme_signals:
-        # If any asset class has direction_allowed=False, we scrub directional terms from the entire report
-        # to ensure strict compliance with logic gates.
-        any_disallowed = any(not s.get('direction_allowed', True) for s in cme_signals.values())
-        if any_disallowed:
-            leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout)\b", re.IGNORECASE)
-            if leakage_pattern.search(text):
-                print("Warning: Directional leakage detected in non-directional regime. Scrubbing...")
-                text = leakage_pattern.sub("[direction-redacted]", text)
-                if "Note: Automatic direction filter applied" not in text:
-                    text += "\n\n*(Note: Automatic direction filter applied due to signal quality gates)*"
+        eq_allowed = cme_signals.get('equity', {}).get('direction_allowed', True)
+        rt_allowed = cme_signals.get('rates', {}).get('direction_allowed', True)
+        
+        leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout)\b", re.IGNORECASE)
+        
+        # Split text into sections by H3 headers
+        sections = re.split(r"(?=### )", text)
+        processed_sections = []
+        filter_applied = False
+        
+        for section in sections:
+            is_rates = "Rates & Curve Profile" in section
+            is_equities = "Engine Room" in section or "Market Breadth" in section
+            is_summary = "Executive Takeaway" in section or "Conclusion" in section
+            
+            should_scrub = False
+            if is_rates and not rt_allowed: should_scrub = True
+            if is_equities and not eq_allowed: should_scrub = True
+            if is_summary and (not eq_allowed or not rt_allowed): should_scrub = True
+            
+            if should_scrub and leakage_pattern.search(section):
+                section = leakage_pattern.sub("[direction-redacted]", section)
+                filter_applied = True
+            
+            processed_sections.append(section)
+            
+        text = "".join(processed_sections)
+        if filter_applied and "Note: Automatic direction filter applied" not in text:
+            text += "\n\n*(Note: Automatic direction filter applied to non-directional signal sections)*"
 
     # Pass 4: Signal Badges (Visual Polish)
     # Define color-coded badges for common signal keywords
