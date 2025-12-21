@@ -59,10 +59,10 @@ Extract the following keys:
   "cme_total_open_interest": int, // Total Open Interest (Combined Total)
   
   // Specific OI Changes (Net Change Column)
-  "cme_rates_futures_oi_change": float, // INTEREST RATES -> FUTURES ONLY -> NET CHGE OI
-  "cme_rates_options_oi_change": float, // INTEREST RATES -> OPTIONS ONLY -> NET CHGE OI
-  "cme_equity_futures_oi_change": float, // EQUITY INDEX -> FUTURES ONLY -> NET CHGE OI
-  "cme_equity_options_oi_change": float  // EQUITY INDEX -> OPTIONS ONLY -> NET CHGE OI
+  "cme_rates_futures_oi_change": int, // INTEREST RATES -> FUTURES ONLY -> NET CHGE OI
+  "cme_rates_options_oi_change": int, // INTEREST RATES -> OPTIONS ONLY -> NET CHGE OI
+  "cme_equity_futures_oi_change": int, // EQUITY INDEX -> FUTURES ONLY -> NET CHGE OI
+  "cme_equity_options_oi_change": int  // EQUITY INDEX -> OPTIONS ONLY -> NET CHGE OI
 }
 """
 
@@ -95,6 +95,7 @@ A. DEFINITIONS & PRE-CHECKS:
      * Label = "Low Signal / Noise".
      * Direction = "Unknown".
      * **SKIP Block 1.B (The Gate) and 1.E (Directional Interpretation) for this asset.**
+   * **Invariant:** If Signal = "Low Signal / Noise", Direction MUST be "Unknown" and the report MUST explicitly state "Low Signal / Noise".
 
 B. THE "FUTURES vs. OPTIONS" GATE (Evaluate Separately per Asset Class):
    * **Rule:** Evaluate using ABSOLUTE values to determine dominance.
@@ -124,6 +125,7 @@ D. THE "SIDEWAYS" PROTOCOL (Only if Signal = Directional AND Trend Status = Flat
 
 E. DIRECTIONAL INTERPRETATION (Only if Trend is Valid/Current + Directional Signal):
    * **CRITICAL INVARIANT:** IF Signal Quality is NOT "Directional", Direction MUST be **Unknown**. NO EXCEPTIONS.
+   * **CRITICAL INVARIANT:** IF Signal Quality is "Low Signal / Noise", Direction MUST be **Unknown**. NO EXCEPTIONS.
    * Trend UP + Futures OI UP = Bullish Conviction (New Longs).
    * Trend DOWN + Futures OI UP = Bearish Conviction (New Shorts).
    * Trend UP + Futures OI DOWN = Short Covering (Weak Rally).
@@ -151,6 +153,7 @@ Print the **DATA VERIFICATION** block below first (exactly as shown). **THEN** c
 
 > **DATA VERIFICATION:**
 > * **Invariant Check:** IF Signal != "Directional" THEN Direction = "Unknown".
+> * **CME Extraction Note:** CME S01 extracted from page 1; if values are null, CME is unavailable.
 > * **Date Check:** Report Date: [Date] | SPX Trend Source: [yfinance/PDF]
 > * **Trend Audit:** [Quote `sp500_trend_audit` here if yfinance used, else "PDF Chart Analysis"]
 > * **Equities:** Futures OI Δ [Signed Val] | Options OI Δ [Signed Val] | Signal: [Type] | Trend Status: [Status] | Direction: [Status]
@@ -170,7 +173,7 @@ Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
 | Liquidity Conditions | [Score] | [Look at CME Image: Is Volume high (deep liquidity) or low?] |
 | Credit Stress | [Score] | [Brief justification] |
 | Valuation Risk | [Score] | [Brief justification] |
-| Risk Appetite | [Score] | [Is participation/leverage expanding (OI rising) or contracting (OI falling)? Direction depends on Gate.] |
+| Risk Appetite | [Score] | [Cite VIX from Ground Truth. Secondary: Is CME participation expanding or contracting?] |
 
 ### 2. Executive Takeaway (5–7 sentences)
 [Regime Name, The Driver, The Pivot]
@@ -254,11 +257,12 @@ def fetch_live_data():
             else:
                 current_idx = -1
             
-            # Check staleness: If the "current" data point is older than 5 days (weekend + holidays), flag it.
+            # Check staleness: If the "current" data point is older than 7 days (weekend + holidays buffer), flag it.
+            # Raised to 7 days to avoid false-positives during long holiday stretches.
             current_data_date = hist_spx.index[current_idx].date()
             days_lag = (today_date - current_data_date).days
             
-            if days_lag > 5:
+            if days_lag > 7:
                 print(f"Warning: SPX data is stale. Last available: {current_data_date} (Lag: {days_lag} days)")
                 data['sp500_trend_status'] = "Unknown"
                 data['sp500_1mo_change_pct'] = None
@@ -538,6 +542,16 @@ def clean_llm_output(text):
     if text.startswith("```markdown"): text = text[11:]
     elif text.startswith("```"): text = text[3:]
     if text.endswith("```"): text = text[:-3]
+    
+    # Post-generation validator for banned terms
+    banned_pattern = re.compile(r"\b(smart money|whales?|insiders?|institutions?|institutional|big players?|professionals?|strong hands?|hedge funds?|asset managers?|dealers?|banks?)\b", re.IGNORECASE)
+    
+    if banned_pattern.search(text):
+        print("Warning: Banned terms found in LLM output. Normalizing...")
+        # Replace matches with neutral term
+        text = banned_pattern.sub("market participants", text)
+        text += "\n\n*(Note: Language normalization applied to remove attribution)*"
+        
     return text.strip()
 
 def get_score_color(category, score):
