@@ -45,7 +45,7 @@ def parse_int_token(tok):
     if not tok: return None
     # Remove commas AND spaces (LLM sometimes outputs "+ 123")
     t = str(tok).strip().replace(",", "").replace(" ", "")
-    if t in {"", "----", "—", "null", "None"}:
+    if t in {"", "----", "\u2014", "null", "None"}:
         return None
     if t.upper() == "UNCH":
         return 0
@@ -59,10 +59,10 @@ def parse_int_token(tok):
 EXTRACTION_PROMPT = """
 You are a precision data extractor. Your job is to read the attached PDF pages (Financial Dashboard + CME Reports) and extract specific numerical data into valid JSON.
 
-• DO NOT provide commentary, analysis, or summary.
-• ONLY return a valid JSON object.
-• Extract numbers as decimals.
-• If a value is missing or unreadable, use `null`.
+- DO NOT provide commentary, analysis, or summary.
+- ONLY return a valid JSON object.
+- Extract numbers as decimals.
+- If a value is missing or unreadable, use `null`.
 
 Extract the following keys:
 
@@ -1001,9 +1001,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         
         # Determine status icon
         if "Default" in detail_text or "Error" in detail_text:
-            status_icon = f"<span title='{detail_text}' style='cursor: help;'>⚠️</span>"
+            status_icon = f"<span title='{detail_text}' style='cursor: help;'>&#9888;&#65039;</span>"
         else:
-            status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>✅</span>"
+            status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>&#9989;</span>"
 
         score_html += f"""
         <div class='score-card' style='border-left: 5px solid {color};'>
@@ -1178,7 +1178,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     if "Gemini summary skipped" not in summary_gemini:
         columns_html += f"""
             <div class="column">
-                <h2>🤖 Gemini ({GEMINI_MODEL})</h2>
+                <h2>&#129302; Gemini ({GEMINI_MODEL})</h2>
                 {signals_panel_html}
                 {rates_curve_html}
                 {html_gemini}
@@ -1188,7 +1188,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     if "OpenRouter summary skipped" not in summary_or:
         columns_html += f"""
             <div class="column">
-                <h2>🧠 OpenRouter ({OPENROUTER_MODEL})</h2>
+                <h2>&#129504; OpenRouter ({OPENROUTER_MODEL})</h2>
                 {signals_panel_html}
                 {rates_curve_html}
                 {html_or}
@@ -1314,7 +1314,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     cme_keys_to_check = ['cme_total_volume', 'cme_total_open_interest', 'cme_rates_futures_oi_change', 'cme_equity_futures_oi_change']
     missing_cme = [k for k in cme_keys_to_check if extracted_metrics.get(k) is None]
     if missing_cme:
-        cme_warning_flag = f' <span class="badge badge-warning" title="Missing fields: {", ".join(missing_cme)}">⚠️ DATA INCOMPLETE</span>'
+        cme_warning_flag = f' <span class="badge badge-warning" title="Missing fields: {", ".join(missing_cme)}">&#9888;&#65039; DATA INCOMPLETE</span>'
 
     # CME Staleness Check
     cme_staleness_flag = ""
@@ -1363,7 +1363,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         notes = [event_context['notes'].get(f, "Market event.") for f in flags]
         event_callout_html = f"""
         <div class="event-callout">
-            <span style="font-size: 1.5em;">⚠️</span>
+            <span style="font-size: 1.5em;">&#9888;&#65039;</span>
             <div>
                 <strong>Event Context:</strong> {', '.join(flags)}<br>
                 <small style="color: #666; font-style: italic;">{' '.join(notes)}</small>
@@ -1420,13 +1420,13 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         </div>
 
         <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
-            Independently generated summary. Informational use only—NOT financial advice. Full disclaimers in footer.
+            Independently generated summary. Informational use only&mdash;NOT financial advice. Full disclaimers in footer.
         </div>
         <div class="pdf-link">
             <h3>Inputs</h3>
-            <a href="{main_pdf_url}" target="_blank">📄 View WisdomTree PDF</a>
+            <a href="{main_pdf_url}" target="_blank">&#128196; View WisdomTree PDF</a>
             &nbsp;&nbsp;
-            <a href="{cme_bulletin_url}" target="_blank" style="background-color: #2c3e50;">📊 View CME Bulletin{cme_warning_flag}</a>
+            <a href="{cme_bulletin_url}" target="_blank" style="background-color: #2c3e50;">&#128202; View CME Bulletin{cme_warning_flag}</a>
         </div>
 
         {event_callout_html}
@@ -1468,7 +1468,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             ("Unknown/Redacted", "gray", "Directional narrative is blocked due to low signal quality."),
             ("FRESH", "green", "Data source is current (within 3 days)."),
             ("STALE", "red", "Data source is outdated (>3 days old)."),
-            ("⚠️ DATA INCOMPLETE", "warning", "Critical data fields were missing from the extraction.")
+            ("&#9888;&#65039; DATA INCOMPLETE", "warning", "Critical data fields were missing from the extraction.")
         ])
     ]
 
@@ -1482,7 +1482,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     glossary_html = f"""
     <div class="algo-box" style="margin-top: 20px;">
         <details>
-            <summary style="font-weight: bold; color: #3498db; cursor: pointer;">📖 Legend & Glossary</summary>
+            <summary style="font-weight: bold; color: #3498db; cursor: pointer;">&#128214; Legend & Glossary</summary>
             <div style="margin-top: 15px; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid #eee;">
                 {glossary_content}
             </div>
@@ -1493,7 +1493,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     html_content = f"""
 ...
         <div class="algo-box">
-            <h3>🧮 Technical Audit: Ground Truth Calculation</h3>
+            <h3>&#129518; Technical Audit: Ground Truth Calculation</h3>
             {score_html}
             {sig_html}
             {kn_html}
@@ -1552,7 +1552,7 @@ def send_email(subject, body_markdown, pages_url):
 
     full_body = body_markdown
     if pages_url:
-        full_body = f"🌐 **View as Webpage:** {pages_url}\n\n" + full_body
+        full_body = f"\U0001F310 **View as Webpage:** {pages_url}\n\n" + full_body
 
     msg.attach(MIMEText(full_body, 'plain'))
 
