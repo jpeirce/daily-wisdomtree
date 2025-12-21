@@ -781,7 +781,7 @@ def get_score_color(category, score):
         
     return "#2c3e50" 
 
-def generate_html(today, summary_or, summary_gemini, scores, details, extracted_metrics, cme_signals=None, verification_block=""):
+def generate_html(today, summary_or, summary_gemini, scores, details, extracted_metrics, cme_signals=None, verification_block="", event_context=None):
     print("Generating HTML report...")
     
     # Helper to badge chips
@@ -946,6 +946,10 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .signals-panel { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.85em; }
     .signal-chip { background: #fff; border: 1px solid #ddd; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
     
+    /* Event Callout */
+    .event-callout { background: #f4f6f8; border: 1px solid #d1d5da; border-radius: 6px; padding: 12px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; font-size: 0.9em; color: #444; }
+    .event-callout strong { color: #24292e; }
+    
     /* Deterministic Separation */
     .deterministic-tint { background-color: #fbfcfd; border-left: 4px solid #d1d5da; padding: 10px 15px; margin: 10px 0; font-style: italic; color: #586069; }
 
@@ -987,6 +991,8 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     @media (prefers-color-scheme: dark) {
         body { background: #0d1117; color: #c9d1d9; }
         .column, .algo-box, .score-grid > div, .footer, .key-numbers, .provenance-strip, .toc-sidebar, .signals-panel, .score-card { background: #161b22 !important; border-color: #30363d !important; box-shadow: none !important; }
+        .event-callout { background: #1c2128 !important; border-color: #444c56 !important; color: #c9d1d9 !important; }
+        .event-callout strong { color: #58a6ff !important; }
         .score-label { color: #8b949e !important; }
         .signal-chip { background: #21262d !important; border-color: #30363d !important; color: #c9d1d9 !important; }
         .deterministic-tint { background-color: #1c2128 !important; border-left-color: #444c56 !important; color: #8b949e !important; }
@@ -1039,6 +1045,22 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
                 cme_staleness_flag = ' <span class="badge badge-green" style="font-size:0.8em; padding:1px 4px;">FRESH</span>'
     except:
         pass
+
+    # Construct Event Callout
+    event_callout_html = ""
+    if event_context and event_context.get('flags_today'):
+        flags = event_context['flags_today']
+        # Filter for significant events to show in callout if desired, or show all
+        notes = [event_context['notes'].get(f, "Market event.") for f in flags]
+        event_callout_html = f"""
+        <div class="event-callout">
+            <span style="font-size: 1.5em;">⚠️</span>
+            <div>
+                <strong>Event Context:</strong> {', '.join(flags)}<br>
+                <small style="color: #666; font-style: italic;">{' '.join(notes)}</small>
+            </div>
+        </div>
+        """
 
     # Gather Status Bar Fields
     eq_sig_label = cme_signals.get('equity', {}).get('signal_label', 'Unknown')
@@ -1098,6 +1120,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             <a href="{cme_pdf_url}" target="_blank">📊 View CME Report{cme_warning_flag}</a>
         </div>
 
+        {event_callout_html}
         {kn_html}
 
         <div class="layout-wrapper">
@@ -1249,7 +1272,7 @@ def main():
     
     # Save & Report
     os.makedirs("summaries", exist_ok=True)
-    generate_html(today, summary_or, summary_gemini, algo_scores, score_details, extracted_metrics, ground_truth_context.get('cme_signals'), verification_block)
+    generate_html(today, summary_or, summary_gemini, algo_scores, score_details, extracted_metrics, ground_truth_context.get('cme_signals'), verification_block, event_context)
     
     # Email
     repo_name = GITHUB_REPOSITORY.split("/")[-1]
