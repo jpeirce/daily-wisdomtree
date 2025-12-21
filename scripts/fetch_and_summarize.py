@@ -643,6 +643,27 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         score_html += f"<div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid {color};'><strong>{k}</strong>{warning}<br><span style='font-size: 1.8em; color: {color}; font-weight: bold;'>{v}/10</span></div>"
     score_html += "</div>"
 
+    # Generate Key Numbers Strip
+    kn = extracted_metrics or {}
+    def fmt_num(val):
+        if val is None: return "N/A"
+        try: return f"{val:,}" if isinstance(val, int) else f"{val:.2f}"
+        except: return str(val)
+
+    key_numbers_items = [
+        ("HY Spread", f"{fmt_num(kn.get('hy_spread_current'))}%"),
+        ("10Y Nominal", f"{fmt_num(kn.get('yield_10y'))}%"),
+        ("10Y Real", f"{fmt_num(kn.get('real_yield_10y'))}%"),
+        ("5y5y Inf", f"{fmt_num(kn.get('inflation_expectations_5y5y'))}%"),
+        ("VIX", f"{fmt_num(kn.get('vix_index'))}"),
+        ("CME Vol", f"{fmt_num(kn.get('cme_total_volume'))}")
+    ]
+    
+    kn_html = "<div class='key-numbers'>"
+    for label, val in key_numbers_items:
+        kn_html += f"<div class='key-number-item'><span class='key-number-label'>{label}</span><span class='key-number-value'>{val}</span></div>"
+    kn_html += "</div>"
+
     # Build columns conditionally
     columns_html = ""
     if "Gemini summary skipped" not in summary_gemini:
@@ -662,7 +683,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         """
 
     css = """
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; transition: background 0.3s, color 0.3s; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
     .pdf-link { display: block; text-align: center; margin-bottom: 30px; }
     .pdf-link a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; }
@@ -678,6 +699,12 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     /* Grid Scoring */
     .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
     
+    /* Key Numbers Strip */
+    .key-numbers { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #eee; }
+    .key-number-item { display: flex; flex-direction: column; align-items: center; min-width: 100px; }
+    .key-number-label { color: #7f8c8d; font-size: 0.75em; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+    .key-number-value { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+
     /* Signal Badges */
     .badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; white-space: nowrap; }
     .badge-blue { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; }
@@ -685,6 +712,20 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .badge-gray { background: #f4f6f6; color: #7f8c8d; border: 1px solid #d5dbdb; }
     .badge-green { background: #e9f7ef; color: #27ae60; border: 1px solid #abebc6; }
     .badge-red { background: #fdedec; color: #c0392b; border: 1px solid #fadbd8; }
+
+    /* Native Dark Mode */
+    @media (prefers-color-scheme: dark) {
+        body { background: #1a1a1a; color: #ecf0f1; }
+        .column, .algo-box, .score-grid > div, .footer, .key-numbers { background: #2c3e50 !important; border-color: #34495e !important; }
+        h1, h2, h3, strong { color: #ecf0f1 !important; }
+        th { background-color: #34495e; color: #ecf0f1; }
+        td { color: #ecf0f1; border-color: #444; }
+        a { color: #3498db; }
+        .key-number-value { color: #ecf0f1 !important; }
+        .key-number-label { color: #bdc3c7 !important; }
+        .badge { filter: brightness(0.9); }
+        .algo-box details div { background: #1a1a1a !important; color: #ecf0f1 !important; border-color: #444 !important; }
+    }
     """
     
     # We can add links to CME pdfs too if desired, but for now just Main
@@ -719,7 +760,8 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         <div class="algo-box">
             <h3>🧮 Technical Audit: Ground Truth Calculation</h3>
             {score_html}
-            <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models above.</em></small>
+            {kn_html}
+            <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models below.</em></small>
             
             <details style="margin-top: 15px; cursor: pointer;">
                 <summary style="font-weight: bold; color: #3498db;">Show Calculation Formulas</summary>
