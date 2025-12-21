@@ -437,14 +437,14 @@ def determine_signal(futures_delta, options_delta, noise_threshold=50000):
             "signal_label": "Hedging-Vol",
             "direction_allowed": False,
             "noise_filtered": False,
-            "gate_reason": f"Options {dom_ratio:.1f}x Futures [|{options_delta}| >= |{futures_delta}|]"
+            "gate_reason": f"Options {dom_ratio:.1f}x Futures [|{opt_abs}| >= |{fut_abs}|]"
         })
     else:
         res.update({
             "signal_label": "Directional",
             "direction_allowed": True,
             "noise_filtered": False,
-            "gate_reason": f"Futures > Options ({1/dom_ratio:.1f}x) [|{futures_delta}| > |{options_delta}|]"
+            "gate_reason": f"Futures > Options ({1/dom_ratio:.1f}x) [|{fut_abs}| > |{opt_abs}|]"
         })
         
     return res
@@ -895,12 +895,16 @@ def clean_llm_output(text, cme_signals=None):
             
             if should_scrub and leakage_pattern.search(section):
                 # Aggressive Redaction
-                section = leakage_pattern.sub("[direction-redacted]", section)
+                section = leakage_pattern.sub("[neutral phrasing enforced]", section)
                 filter_applied = True
             
             processed_sections.append(section)
             
         text = "".join(processed_sections)
+        
+        # Grammatical cleanup after actor sanitization
+        text = text.replace("participants flows", "participant flows")
+        
         if filter_applied and "Note: Automatic direction filter applied" not in text:
             text += "\n\n*(Note: Automatic direction filter applied to non-directional signal sections)*"
 
