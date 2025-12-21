@@ -784,6 +784,19 @@ def get_score_color(category, score):
 def generate_html(today, summary_or, summary_gemini, scores, details, extracted_metrics, cme_signals=None, verification_block=""):
     print("Generating HTML report...")
     
+    # Helper to badge chips
+    def make_chip(label, val):
+        c = 'badge-gray'
+        v_lower = str(val).lower()
+        if 'directional' in v_lower: c = 'badge-blue'
+        elif 'hedging' in v_lower: c = 'badge-orange'
+        elif 'allowed' in v_lower: c = 'badge-green'
+        elif 'expanding' in v_lower: c = 'badge-green'
+        elif 'contracting' in v_lower: c = 'badge-red'
+        elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
+        elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
+        return f'<span class="badge {c}" style="font-size:0.75em; padding:1px 4px;">{val}</span>'
+
     # Prepend Verification Block to the raw text BEFORE markdown conversion
     if verification_block:
         summary_or = verification_block + "\n\n" + summary_or
@@ -1024,18 +1037,6 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     rt_dir_str = "Allowed" if rt_dir_allowed else "Unknown"
     ust10y_move = extracted_metrics.get('ust10y_change_bps')
     ust10y_move_str = f"{ust10y_move:+.1f} bps" if ust10y_move is not None else "N/A"
-
-    def make_chip(label, val):
-        c = 'badge-gray'
-        v_lower = str(val).lower()
-        if 'directional' in v_lower: c = 'badge-blue'
-        elif 'hedging' in v_lower: c = 'badge-orange'
-        elif 'allowed' in v_lower: c = 'badge-green'
-        elif 'expanding' in v_lower: c = 'badge-green'
-        elif 'contracting' in v_lower: c = 'badge-red'
-        elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
-        elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
-        return f'<span class="badge {c}" style="font-size:0.75em; padding:1px 4px;">{val}</span>'
 
     html_content = f"""
     <!DOCTYPE html>
