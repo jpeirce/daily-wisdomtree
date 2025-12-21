@@ -1113,6 +1113,49 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
                 <span class="curve-value" style="{get_curve_color(net)}">{d(net)}</span>
             </div>
             """
+        
+        # Construct Tenor Detail Table
+        tenors_data = rates_curve.get("tenors", {})
+        active_cluster_name = dom.get('active_cluster', '')
+        # Map clusters to tenors for highlighting
+        cluster_map = {
+            "Short End": ["2y", "3y"],
+            "Belly": ["5y"],
+            "Tens": ["10y", "tn"],
+            "Long End": ["30y", "ultra"]
+        }
+        active_tenors = cluster_map.get(active_cluster_name, [])
+
+        tenor_rows = ""
+        for tenor in ["2y", "3y", "5y", "10y", "tn", "30y", "ultra"]:
+            t_data = tenors_data.get(tenor, {})
+            is_active = tenor in active_tenors
+            row_style = "background-color: #f8f9fa; font-weight: bold;" if is_active else ""
+            
+            tenor_rows += f"""
+            <tr style="{row_style}">
+                <td style="text-align: left; padding: 4px 8px;">{tenor.upper()}</td>
+                <td class="numeric" style="padding: 4px 8px;">{fmt_num(t_data.get('total_volume', 0))}</td>
+                <td class="numeric" style="padding: 4px 8px; {get_curve_color(t_data.get('oi_change', 0))}">{d(t_data.get('oi_change', 0))}</td>
+            </tr>
+            """
+
+        tenor_table_html = f"""
+        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+            <table style="font-size: 0.85em; width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="color: #7f8c8d; border-bottom: 1px solid #eee;">
+                        <th style="text-align: left; padding: 4px 8px; font-weight: 600;">Tenor</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">Vol</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">OI Chg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tenor_rows}
+                </tbody>
+            </table>
+        </div>
+        """
             
         rates_curve_html = f"""
         <div class="rates-curve-panel">
@@ -1126,6 +1169,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             <div class="curve-grid">
                 {rows}
             </div>
+            {tenor_table_html}
         </div>
         """
 
