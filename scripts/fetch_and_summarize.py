@@ -1095,13 +1095,21 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             if net_chg < 0: return "color: #e74c3c;"
             return "color: #7f8c8d;"
 
+        # Cluster definitions for tooltips
+        cluster_defs = {
+            "Short End": "2-Year & 3-Year Notes (Fed Policy Proxy)",
+            "Belly": "5-Year Note (Transition Zone)",
+            "Tens": "10-Year & Ultra 10-Year (Benchmark Duration)",
+            "Long End": "30-Year & Ultra Bond (Inflation/Growth Proxy)"
+        }
+
         rows = ""
         for name in ["Short End", "Belly", "Tens", "Long End"]:
             data = clusters.get(name, {})
             net = data.get("net_oi_change", 0)
             rows += f"""
-            <div class="curve-item">
-                <span class="curve-label">{name}</span>
+            <div class="curve-item" title="{cluster_defs.get(name, '')}">
+                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">{name}</span>
                 <span class="curve-value" style="{get_curve_color(net)}">{d(net)}</span>
             </div>
             """
@@ -1110,8 +1118,8 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         <div class="rates-curve-panel">
             <div class="curve-header">
                 <strong>Rates Curve Structure</strong>
-                <span style="font-size: 0.85em; color: #666;">
-                    {make_chip('Regime', dom.get('regime_label', 'Mixed'))}
+                <span style="font-size: 0.85em; color: #666;" title="Regime: Which part of the yield curve has the highest absolute Open Interest change?">
+                    {make_chip('Regime', dom.get('regime_label', 'Mixed'), "Dominant Cluster based on total activity")}
                     Active: {dom.get('active_cluster')} ({dom.get('active_tenor')})
                 </span>
             </div>
