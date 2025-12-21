@@ -58,14 +58,29 @@ Extract the following keys:
   
   // From CME Section 01 Report
   "cme_bulletin_date": string, // Date at top of CME report (e.g. "2025-12-19")
-  "cme_total_volume": int, // Total Exchange Volume (Combined Total)
-  "cme_total_open_interest": int, // Total Open Interest (Combined Total)
   
-  // Specific OI Changes (Net Change Column)
-  "cme_rates_futures_oi_change": int, // INTEREST RATES -> FUTURES ONLY -> NET CHGE OI
-  "cme_rates_options_oi_change": int, // INTEREST RATES -> OPTIONS ONLY -> NET CHGE OI
-  "cme_equity_futures_oi_change": int, // EQUITY INDEX -> FUTURES ONLY -> NET CHGE OI
-  "cme_equity_options_oi_change": int  // EQUITY INDEX -> OPTIONS ONLY -> NET CHGE OI
+  // --- CME Group Overall Totals ---
+  // Look for the "CME GROUP TOTALS" section, specifically the "CME GROUP TOTALS" row.
+  "cme_total_volume": int, // "OVERALL VOLUME" column for "CME GROUP TOTALS" row
+  "cme_total_open_interest": int, // "COMBINED TOTAL" -> "OPEN INTEREST" column for "CME GROUP TOTALS" row
+  "cme_total_oi_net_change": int, // "COMBINED TOTAL" -> "NET CHGE OI" column for "CME GROUP TOTALS" row
+  "cme_totals_audit_label": string, // The exact row label matched (should be "CME GROUP TOTALS")
+
+  // --- Specific Asset Class Changes (Net Change Column) ---
+  
+  // 1. INTEREST RATES
+  "cme_rates_futures_oi_change": int, // Table "FUTURES ONLY" -> Row "INTEREST RATES" -> Column "NET CHGE OI"
+  "cme_rates_futures_audit_label": string, // The exact row label matched (should be "INTEREST RATES")
+  
+  "cme_rates_options_oi_change": int, // Table "OPTIONS ONLY" -> Row "INTEREST RATES" -> Column "NET CHGE OI"
+  "cme_rates_options_audit_label": string, // The exact row label matched (should be "INTEREST RATES")
+  
+  // 2. EQUITY INDEX
+  "cme_equity_futures_oi_change": int, // Table "FUTURES ONLY" -> Row "EQUITY INDEX" -> Column "NET CHGE OI"
+  "cme_equity_futures_audit_label": string, // The exact row label matched (should be "EQUITY INDEX")
+  
+  "cme_equity_options_oi_change": int, // Table "OPTIONS ONLY" -> Row "EQUITY INDEX" -> Column "NET CHGE OI"
+  "cme_equity_options_audit_label": string  // The exact row label matched (should be "EQUITY INDEX")
 }
 """
 
@@ -356,6 +371,7 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > **DATA VERIFICATION (DETERMINISTIC):**
 > * **Event Flags:** Today: {event_context.get('flags_today', [])} | Recent: {event_context.get('flags_recent', [])}
 > * **CME Provenance:** Bulletin Date: "{extracted_metrics.get('cme_bulletin_date', 'Unknown')}" | Total Volume: {fmt_val(extracted_metrics.get('cme_total_volume', 'N/A'))} | Total OI: {fmt_val(extracted_metrics.get('cme_total_open_interest', 'N/A'))}
+> * **CME Audit Anchors:** Totals: "{extracted_metrics.get('cme_totals_audit_label', 'N/A')}" | Rates: "{extracted_metrics.get('cme_rates_futures_audit_label', 'N/A')}" | Equities: "{extracted_metrics.get('cme_equity_futures_audit_label', 'N/A')}"
 > * **Date Check:** Report Date: {effective_date} | SPX Trend Source: yfinance
 > * **Trend Audit:** {extracted_metrics.get('sp500_trend_audit', 'N/A')}
 > * **Equities:** Signal: {eq_sig.get('signal_quality', 'Unknown')} | Trend Status: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Direction Allowed: {eq_sig.get('direction_allowed', False)}
