@@ -139,6 +139,9 @@ YOU MUST adhere to these flags. Do not attempt to recalculate them.
 2.  **IF `signal_label` is "Low Signal / Noise":** 
     *   Direction MUST be "Unknown".
     *   You MUST explicitly state: "Signal is below noise threshold."
+3.  **PARTICIPATION CHECK:**
+    *   Use `cme_signals.equity.participation_label` and `cme_signals.rates.participation_label` (Expanding/Contracting) when describing market interest.
+    *   Do NOT claim "broad participation" or "new money" if the label is "Contracting".
 
 # === BLOCK 2: VISUAL EXTRACTION INSTRUCTIONS ===
 
@@ -340,6 +343,7 @@ def determine_signal(futures_delta, options_delta, noise_threshold=50000):
         "direction_allowed": False,
         "noise_filtered": False,
         "gate_reason": "Missing Data",
+        "participation_label": "Unknown",
         "futures_oi_delta": futures_delta,
         "options_oi_delta": options_delta
     }
@@ -349,6 +353,10 @@ def determine_signal(futures_delta, options_delta, noise_threshold=50000):
     
     fut_abs = abs(futures_delta)
     opt_abs = abs(options_delta)
+    net_delta = futures_delta + options_delta
+    
+    # Participation Logic
+    res["participation_label"] = "Expanding" if net_delta > 0 else "Contracting"
     
     # 1. Noise Filter
     if max(fut_abs, opt_abs) < noise_threshold:
@@ -399,8 +407,8 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > * **CME Audit Anchors:** Totals: "{extracted_metrics.get('cme_totals_audit_label', 'N/A')}" | Rates: "{extracted_metrics.get('cme_rates_futures_audit_label', 'N/A')}" | Equities: "{extracted_metrics.get('cme_equity_futures_audit_label', 'N/A')}"
 > * **Date Check:** Report Date: {effective_date} | SPX Trend Source: yfinance
 > * **SPX Trend Audit:** {extracted_metrics.get('sp500_trend_audit', 'N/A')}
-> * **Equities:** Signal: {eq_sig.get('signal_label', 'Unknown')} | Trend Status: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Direction Allowed: {eq_sig.get('direction_allowed', False)}
-> * **Rates:** {rates_text} | Direction Allowed: {rt_sig.get('direction_allowed', False)}
+> * **Equities:** Signal: {eq_sig.get('signal_label', 'Unknown')} | Part.: {eq_sig.get('participation_label', 'Unknown')} | Trend: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Dir: {eq_sig.get('direction_allowed', False)}
+> * **Rates:** {rates_text} | Part.: {rt_sig.get('participation_label', 'Unknown')} | Dir: {rt_sig.get('direction_allowed', False)}
 </details>
 """
     return block
@@ -936,11 +944,13 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
 
     # Gather Status Bar Fields
     eq_sig_label = cme_signals.get('equity', {}).get('signal_label', 'Unknown')
+    eq_part_label = cme_signals.get('equity', {}).get('participation_label', 'Unknown')
     eq_dir_allowed = cme_signals.get('equity', {}).get('direction_allowed', False)
     eq_dir_str = "Allowed" if eq_dir_allowed else "Unknown"
     spx_trend_status = extracted_metrics.get('sp500_trend_status', 'Unknown')
     
     rt_sig_label = cme_signals.get('rates', {}).get('signal_label', 'Unknown')
+    rt_part_label = cme_signals.get('rates', {}).get('participation_label', 'Unknown')
     rt_dir_allowed = cme_signals.get('rates', {}).get('direction_allowed', False)
     rt_dir_str = "Allowed" if rt_dir_allowed else "Unknown"
     ust10y_move = extracted_metrics.get('ust10y_change_bps')
@@ -952,6 +962,8 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         if 'directional' in v_lower: c = 'badge-blue'
         elif 'hedging' in v_lower: c = 'badge-orange'
         elif 'allowed' in v_lower: c = 'badge-green'
+        elif 'expanding' in v_lower: c = 'badge-green'
+        elif 'contracting' in v_lower: c = 'badge-red'
         elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
         elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
         return f'<span class="badge {c}" style="font-size:0.75em; padding:1px 4px;">{val}</span>'
@@ -976,12 +988,14 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Equities:</span>
                 {make_chip('Pos', eq_sig_label)}
+                {make_chip('Part', eq_part_label)}
                 {make_chip('Dir', eq_dir_str)}
                 {make_chip('Trend', spx_trend_status)}
             </div>
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Rates:</span>
                 {make_chip('Pos', rt_sig_label)}
+                {make_chip('Part', rt_part_label)}
                 {make_chip('Dir', rt_dir_str)}
                 {make_chip('10Y', ust10y_move_str)}
             </div>
