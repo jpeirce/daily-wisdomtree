@@ -31,7 +31,7 @@ jobs:
           SMTP_EMAIL: ${{ secrets.SMTP_EMAIL }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-          SUMMARIZE_PROVIDER: ALL
+          SUMMARIZE_PROVIDER: GEMINI
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/fetch_and_summarize.py
         
