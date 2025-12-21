@@ -865,9 +865,26 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     cme_pdf_url = PDF_SOURCES['cme_vol']
     
     # Extract provenance info
-    cme_date = extracted_metrics.get('cme_bulletin_date', 'N/A')
+    cme_date_str = extracted_metrics.get('cme_bulletin_date', 'N/A')
     spx_audit = extracted_metrics.get('sp500_trend_audit', 'N/A')
     
+    # CME Staleness Check
+    cme_staleness_flag = ""
+    try:
+        if cme_date_str != 'N/A':
+            # CME date usually comes as "YYYY-MM-DD" from extraction
+            cme_dt = datetime.strptime(cme_date_str, "%Y-%m-%d").date()
+            eff_dt = datetime.strptime(today, "%Y-%m-%d").date() # Using 'today' or 'effective_date'
+            
+            # If CME date is older than 3 days (buffer for weekends), mark as stale
+            days_diff = (eff_dt - cme_dt).days
+            if days_diff > 3:
+                cme_staleness_flag = f' <span class="badge badge-red" style="font-size:0.8em; padding:1px 4px;">STALE ({days_diff}d lag)</span>'
+            else:
+                cme_staleness_flag = ' <span class="badge badge-green" style="font-size:0.8em; padding:1px 4px;">FRESH</span>'
+    except:
+        pass
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -890,11 +907,12 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         <div class="provenance-strip">
             <div class="provenance-item">
                 <span class="provenance-label">CME Date:</span>
-                <span>{cme_date}</span>
+                <span>{cme_date_str}{cme_staleness_flag}</span>
             </div>
             <div class="provenance-item">
                 <span class="provenance-label">SPX Trend:</span>
                 <span title="{spx_audit}">{spx_audit.split('(')[0].strip() if '(' in spx_audit else spx_audit}</span>
+                <span style="color: #8b949e; font-size: 0.9em; margin-left: 4px;">(Source: yfinance)</span>
             </div>
         </div>
 
