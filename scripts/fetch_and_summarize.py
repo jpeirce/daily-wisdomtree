@@ -45,6 +45,7 @@ Extract the following keys:
 
 {
   // From WisdomTree Dashboard
+  "wisdomtree_as_of_date": string, // "As of" date found on WisdomTree dashboard (e.g. "Dec 19, 2025")
   "hy_spread_current": float, // High Yield Spread (e.g. 2.84)
   "hy_spread_median": float, // Historical Median HY Spread
   "forward_pe_current": float, // S&P 500 Forward P/E
@@ -915,6 +916,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     
     # Extract provenance info
     cme_date_str = extracted_metrics.get('cme_bulletin_date', 'N/A')
+    wt_date_str = extracted_metrics.get('wisdomtree_as_of_date', 'N/A')
     spx_audit = extracted_metrics.get('sp500_trend_audit', 'N/A')
     
     # Check for missing CME data
@@ -982,8 +984,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         
         <div class="provenance-strip" style="flex-wrap: wrap;">
             <div class="provenance-item">
-                <span class="provenance-label">CME Date:</span>
-                <span>{cme_date_str}{cme_staleness_flag}</span>
+                <span class="provenance-label">Dates:</span>
+                <span title="CME Bulletin Date">CME: {cme_date_str}{cme_staleness_flag}</span>
+                <span title="WisdomTree Dashboard As-Of Date" style="margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">WT: {wt_date_str}</span>
             </div>
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Equities:</span>
