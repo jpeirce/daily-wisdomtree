@@ -159,10 +159,12 @@ Do NOT include any verification data, raw metrics, or event flags in your output
 Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
 *In the 'Justification' column, reference the visual evidence from the CME images (Volume/OI) to support the score.*
 
+**Constraint:** You must ONLY cite numbers present in the `extracted_metrics` JSON. Do NOT "discover" or hallucinate numbers (e.g., Mag 7 growth) from the PDF text layer unless they are explicitly in the Ground Truth.
+
 | Dial | Score (0-10) | Justification (Data Source: Daily Market Snapshot + CME) |
 |---|---|---|
 | Growth Impulse | [Score] | [Brief justification] |
-| Inflation Pressure | [Score] | [Brief justification] |
+| Inflation Pressure | [Score] | [Cite `inflation_expectations_5y5y` VERBATIM. Do not use "near" or "approx".] |
 | Liquidity Conditions | [Look at CME Image: Is Volume high (deep liquidity) or low?] |
 | Credit Stress | [Score] | [Brief justification] |
 | Valuation Risk | [Score] | [Brief justification] |
