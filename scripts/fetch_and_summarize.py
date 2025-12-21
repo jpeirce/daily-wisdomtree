@@ -641,6 +641,17 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         score_html += f"<div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid {color};'><strong>{k}</strong>{warning}<br><span style='font-size: 1.8em; color: {color}; font-weight: bold;'>{v}/10</span></div>"
     score_html += "</div>"
 
+    # Generate Signal Highlights
+    sig_html = ""
+    if cme_signals:
+        sig_html = "<div class='key-numbers' style='border-top: 4px solid #3498db;'>"
+        for label, data in cme_signals.items():
+            quality = data.get('signal_quality', 'Unknown')
+            allowed = "Allowed" if data.get('direction_allowed') else "Redacted"
+            color = "#27ae60" if data.get('direction_allowed') else "#7f8c8d"
+            sig_html += f"<div class='key-number-item'><span class='key-number-label'>{label.upper()} SIGNAL</span><span class='key-number-value' style='color: {color};'>{quality}</span><small>Direction: {allowed}</small></div>"
+        sig_html += "</div>"
+
     # Generate Key Numbers Strip
     kn = extracted_metrics or {}
     def fmt_num(val):
@@ -649,6 +660,8 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         except: return str(val)
 
     key_numbers_items = [
+        ("S&P 500", fmt_num(kn.get('sp500_current'))),
+        ("Forward P/E", f"{fmt_num(kn.get('forward_pe_current'))}x"),
         ("HY Spread", f"{fmt_num(kn.get('hy_spread_current'))}%"),
         ("10Y Nominal", f"{fmt_num(kn.get('yield_10y'))}%"),
         ("10Y Real", f"{fmt_num(kn.get('real_yield_10y'))}%"),
@@ -758,6 +771,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         <div class="algo-box">
             <h3>🧮 Technical Audit: Ground Truth Calculation</h3>
             {score_html}
+            {sig_html}
             {kn_html}
             <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models below.</em></small>
             
