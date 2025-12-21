@@ -393,8 +393,20 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
     
     def fmt_val(v): return f"{v:,}" if isinstance(v, int) else str(v)
     
+    def b(val):
+        c = 'badge-gray'
+        v_lower = str(val).lower()
+        if 'directional' in v_lower: c = 'badge-blue'
+        elif 'hedging' in v_lower: c = 'badge-orange'
+        elif 'allowed' in v_lower: c = 'badge-green'
+        elif 'expanding' in v_lower: c = 'badge-green'
+        elif 'contracting' in v_lower: c = 'badge-red'
+        elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
+        elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
+        return f'<span class="badge {c}">{val}</span>'
+
     bps_change = extracted_metrics.get('ust10y_change_bps')
-    rates_text = f"Signal: {rt_sig.get('signal_label', 'Unknown')}"
+    rates_text = f"Signal: {b(rt_sig.get('signal_label', 'Unknown'))}"
     if bps_change is not None:
         rates_text += f" | 10Y Move: {bps_change:+.1f} bps (Live)"
 
@@ -408,8 +420,8 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > * **CME Audit Anchors:** Totals: "{extracted_metrics.get('cme_totals_audit_label', 'N/A')}" | Rates: "{extracted_metrics.get('cme_rates_futures_audit_label', 'N/A')}" | Equities: "{extracted_metrics.get('cme_equity_futures_audit_label', 'N/A')}"
 > * **Date Check:** Report Date: {effective_date} | SPX Trend Source: yfinance
 > * **SPX Trend Audit:** {extracted_metrics.get('sp500_trend_audit', 'N/A')}
-> * **Equities:** Signal: {eq_sig.get('signal_label', 'Unknown')} | Part.: {eq_sig.get('participation_label', 'Unknown')} | Trend: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Dir: {eq_sig.get('direction_allowed', False)}
-> * **Rates:** {rates_text} | Part.: {rt_sig.get('participation_label', 'Unknown')} | Dir: {rt_sig.get('direction_allowed', False)}
+> * **Equities:** Signal: {b(eq_sig.get('signal_label', 'Unknown'))} | Part.: {b(eq_sig.get('participation_label', 'Unknown'))} | Trend: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Dir: {eq_sig.get('direction_allowed', False)}
+> * **Rates:** {rates_text} | Part.: {b(rt_sig.get('participation_label', 'Unknown'))} | Dir: {rt_sig.get('direction_allowed', False)}
 </details>
 """
     return block
@@ -724,26 +736,6 @@ def clean_llm_output(text, cme_signals=None):
         if filter_applied and "Note: Automatic direction filter applied" not in text:
             text += "\n\n*(Note: Automatic direction filter applied to non-directional signal sections)*"
 
-    # Pass 4: Signal Badges (Visual Polish)
-    # Define color-coded badges for common signal keywords
-    badges = {
-        r"\bDirectional\b": "badge-blue",
-        r"\bHedging[/-]Vol\b": "badge-orange",
-        r"\bLow Signal / Noise\b": "badge-gray",
-        r"\bBullish\b": "badge-green",
-        r"\bBearish\b": "badge-red",
-        r"\bTrending Up\b": "badge-green",
-        r"\bTrending Down\b": "badge-red",
-        r"\bFlat\b": "badge-gray",
-        r"\bBalanced\b": "badge-blue",
-        r"\bFresh\b": "badge-green",
-        r"\bStale\b": "badge-red",
-        r"\bUnknown\b": "badge-gray",
-        r"\bRedacted\b": "badge-gray"
-    }
-    for pattern, css_class in badges.items():
-        text = re.sub(pattern, f'<span class="badge {css_class}">\\g<0></span>', text, flags=re.IGNORECASE)
-        
     return text.strip()
 
 def get_score_color(category, score):
