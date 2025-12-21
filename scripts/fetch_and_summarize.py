@@ -72,8 +72,8 @@ Role: You are a macro strategist for a top-tier hedge fund.
 Task: Analyze the provided visual inputs (Macro Dashboard & CME Bulletin) to produce a strategic, easy-to-digest market outlook.
 
 GLOBAL CONSTRAINTS (Language & Tone):
-1. **No Actor Attribution:** Do NOT use terms like "Smart Money", "Whales", "Insiders", "Institutions", "Big Players", "Professionals", "Strong Hands", "Hedge Funds", "Asset Managers", "Dealers", or "Banks".
-2. **Structural Phrasing:** Describe market mechanics, not intent.
+1. **No Actor Attribution:** Do NOT use terms like "Smart Money", "Whales", "Insiders", "Institutions", "Big Players", "Professionals", "Strong Hands", "Hedge Funds", "Asset Managers", "Dealers", "Banks", "Allocators", "Real Money", "Pensions", "Sovereign", "Macro Funds", "Levered Funds", or "CTAs".
+2. **Structural Phrasing:** Describe activity as "futures-led / options-led positioning" without naming specific participant types.
    * *Bad:* "Institutions are shorting aggressively."
    * *Good:* "Futures-led positioning increased; direction remains unknown unless Signal=Directional and Trend is valid."
    * *Bad:* "Smart money is buying the dip."
@@ -578,7 +578,7 @@ def clean_llm_output(text):
             text += "\n\n*(Note: Language normalization applied to remove attribution)*"
 
     # Pass 2: Nouns (e.g. "whales sold" -> "market participants sold")
-    noun_pattern = re.compile(r"\b(smart money|whales?|insiders?|institutions?|big players?|professionals?|strong hands?|hedge funds?|asset managers?|dealers?|banks?)\b", re.IGNORECASE)
+    noun_pattern = re.compile(r"\b(smart money|whales?|insiders?|institutions?|big players?|professionals?|strong hands?|hedge funds?|asset managers?|dealers?|banks?|allocators?|real money|pensions?|pension funds?|sovereign|sovereign wealth|macro funds?|levered funds?|CTAs)\b", re.IGNORECASE)
     if noun_pattern.search(text):
         print("Warning: Banned noun found. Normalizing...")
         text = noun_pattern.sub("market participants", text)

@@ -42,6 +42,13 @@ class TestCleaner(unittest.TestCase):
         self.assertIn("market-participant flows", clean_text)
         self.assertIn("Language normalization applied", clean_text)
 
+    def test_clean_new_banned_terms(self):
+        text = "Macro funds and allocators are rebalancing."
+        clean_text = clean_llm_output(text)
+        self.assertNotIn("Macro funds", clean_text)
+        self.assertNotIn("allocators", clean_text)
+        self.assertIn("market participants", clean_text)
+
 if __name__ == '__main__':
     unittest.main()
 
