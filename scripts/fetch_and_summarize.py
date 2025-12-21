@@ -115,6 +115,7 @@ D. THE "SIDEWAYS" PROTOCOL (Only if Signal = Directional AND Trend Status = Flat
      * *Constraint:* Do not upgrade to "Breakout Imminent" (insufficient chart granularity).
 
 E. DIRECTIONAL INTERPRETATION (Only if Trend is Valid/Current + Directional Signal):
+   * **CRITICAL INVARIANT:** IF Signal Quality is NOT "Directional", Direction MUST be **Unknown**. NO EXCEPTIONS.
    * Trend UP + Futures OI UP = Bullish Conviction (New Longs).
    * Trend DOWN + Futures OI UP = Bearish Conviction (New Shorts).
    * Trend UP + Futures OI DOWN = Short Covering (Weak Rally).
@@ -141,6 +142,7 @@ E. DIRECTIONAL INTERPRETATION (Only if Trend is Valid/Current + Directional Sign
 Print the **DATA VERIFICATION** block below first (exactly as shown). **THEN** continue with the Final Output Structure (Scoreboard, Executive Takeaway, etc.).
 
 > **DATA VERIFICATION:**
+> * **Invariant Check:** IF Signal != "Directional" THEN Direction = "Unknown".
 > * **Date Check:** Report Date: [Date] | SPX Trend Source: [yfinance/PDF]
 > * **Trend Audit:** [Quote `sp500_trend_audit` here if yfinance used, else "PDF Chart Analysis"]
 > * **Equities:** Futures OI Δ [Signed Val] | Options OI Δ [Signed Val] | Signal: [Type] | Trend Status: [Status] | Direction: [Status]
@@ -236,6 +238,18 @@ def fetch_live_data():
             else:
                 current_idx = -1
             
+            # Check staleness: If the "current" data point is older than 4 days (weekend + 1 holiday buffer), flag it.
+            # Using 4 days to be safe against long weekends.
+            current_data_date = hist_spx.index[current_idx].date()
+            days_lag = (today_date - current_data_date).days
+            
+            if days_lag > 4:
+                print(f"Warning: SPX data is stale. Last available: {current_data_date} (Lag: {days_lag} days)")
+                data['sp500_trend_status'] = "Unknown"
+                data['sp500_1mo_change_pct'] = None
+                data['sp500_trend_audit'] = f"Data Stale (Lag: {days_lag} days)"
+                return data
+
             # We want strictly 21 trading days ago
             prior_idx = current_idx - 21
             

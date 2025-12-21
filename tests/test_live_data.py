@@ -82,5 +82,28 @@ class TestLiveData(unittest.TestCase):
         self.assertEqual(data['sp500_trend_status'], "Unknown")
         self.assertEqual(data['sp500_trend_audit'], "Insufficient data")
 
+    @patch('yfinance.Ticker')
+    @patch('fetch_and_summarize.datetime')
+    def test_stale_data(self, mock_datetime, mock_ticker):
+        # Setup: Today is Monday, but data ends last Tuesday (6 days ago)
+        fixed_now = datetime(2025, 12, 22, 12, 0, 0) # A Monday
+        mock_datetime.now.return_value = fixed_now
+        
+        # Last data point is Dec 16 (Tuesday prior)
+        last_data_date = datetime(2025, 12, 16, 16, 0, 0)
+        dates = pd.date_range(end=last_data_date, periods=60, freq='B')
+        mock_hist = pd.DataFrame({
+            'Close': [100.0] * 60
+        }, index=dates)
+        
+        mock_instance = MagicMock()
+        mock_instance.history.return_value = mock_hist
+        mock_ticker.return_value = mock_instance
+        
+        data = fetch_live_data()
+        
+        self.assertEqual(data['sp500_trend_status'], "Unknown")
+        self.assertIn("Data Stale", data['sp500_trend_audit'])
+
 if __name__ == '__main__':
     unittest.main()
