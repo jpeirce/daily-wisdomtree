@@ -142,13 +142,11 @@ YOU MUST adhere to these flags. Do not attempt to recalculate them.
 
 # === BLOCK 2: VISUAL EXTRACTION INSTRUCTIONS ===
 
-### 0. Visual Data Validation
-1. **Confirm Extracted Values:** Quickly verify that the provided Ground Truth JSON aligns with the visual evidence in the PDF pages.
-2. **Rates Focus:** Check "Treasury Yields" Table (Pg 1) to cross-reference yield moves with CME positioning.
+Use the WisdomTree images primarily for growth, inflation, and yield curve context. Use the CME Bulletin primarily for positioning and sentiment context.
 
 **OUTPUT INSTRUCTION:**
-Do NOT output a "DATA VERIFICATION" block; one will be prepended automatically by the system using deterministic Python logic. 
-Proceed directly to the Final Output Structure (Scoreboard, Executive Takeaway, etc.).
+Proceed directly to the Final Output Structure. Start with "### 1. The Dashboard (Scoreboard)".
+Do NOT include any verification data, raw metrics, or event flags in your output; these are handled by a separate deterministic system.
 
 # === BLOCK 3: FINAL OUTPUT STRUCTURE ===
 
