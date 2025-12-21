@@ -43,7 +43,8 @@ NOISE_THRESHOLDS = {
 
 def parse_int_token(tok):
     if not tok: return None
-    t = str(tok).strip().replace(",", "")
+    # Remove commas AND spaces (LLM sometimes outputs "+ 123")
+    t = str(tok).strip().replace(",", "").replace(" ", "")
     if t in {"", "----", "—", "null", "None"}:
         return None
     if t.upper() == "UNCH":
