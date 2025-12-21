@@ -31,7 +31,35 @@ PDF_SOURCES = {
 OPENROUTER_MODEL = "openai/gpt-5.2" 
 GEMINI_MODEL = "gemini-3-pro-preview" 
 
+# Noise thresholds by asset class
+NOISE_THRESHOLDS = {
+    "equity": 50000,
+    "rates": 75000,
+    "fx": 25000
+}
+
 # --- Prompts ---
+...
+    .column { flex: 1; min-width: 350px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.75; }
+    
+    /* Numeric Formatting */
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    table td:nth-child(2) { text-align: right; font-variant-numeric: tabular-nums; } /* Auto-target Score column */
+...
+def extract_metrics_gemini(pdf_paths):
+    print("Extracting Ground Truth Data with Gemini...")
+    if not AI_STUDIO_API_KEY: 
+        print("Error: AI_STUDIO_API_KEY not found. Skipping PDF extraction.")
+        return {}
+
+    genai.configure(api_key=AI_STUDIO_API_KEY)
+...
+        data = json.loads(text)
+        print(f"Extracted Data: {data}")
+        return data
+    except Exception as e:
+        print(f"Extraction failed (CME/WisdomTree Source): {e}")
+        return {}
 
 EXTRACTION_PROMPT = """
 You are a precision data extractor. Your job is to read the attached PDF pages (Financial Dashboard + CME Reports) and extract specific numerical data into valid JSON.
@@ -424,8 +452,8 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
         rates_text += f" | 10Y Move: {bps_change:+.1f} bps (Live)"
 
     # Add Raw Deltas to Verification
-    eq_deltas = f"[Fut: {d(eq_sig.get('futures_oi_delta'))} | Opt: {d(eq_sig.get('options_oi_delta'))}]"
-    rt_deltas = f"[Fut: {d(rt_sig.get('futures_oi_delta'))} | Opt: {d(rt_sig.get('options_oi_delta'))}]"
+    eq_deltas = f"[Fut: <span class=\"numeric\">{d(eq_sig.get('futures_oi_delta'))}</span> | Opt: <span class=\"numeric\">{d(eq_sig.get('options_oi_delta'))}</span>]"
+    rt_deltas = f"[Fut: <span class=\"numeric\">{d(rt_sig.get('futures_oi_delta'))}</span> | Opt: <span class=\"numeric\">{d(rt_sig.get('options_oi_delta'))}</span>]"
 
     block = f"""
 <details>
@@ -1226,6 +1254,8 @@ def main():
     
     # Fetch Live Fallbacks (VIX)
     live_metrics = fetch_live_data()
+    if not live_metrics:
+        print("Warning: Live data fetch (yfinance source) failed completely.")
     
     # Merge
     for k, v in live_metrics.items():
@@ -1234,14 +1264,16 @@ def main():
 
     algo_scores, score_details = calculate_deterministic_scores(extracted_metrics)
     
-    # Pre-calculate Signals
+    # Pre-calculate Signals with Asset-Specific Thresholds
     equity_signal = determine_signal(
         extracted_metrics.get('cme_equity_futures_oi_change'),
-        extracted_metrics.get('cme_equity_options_oi_change')
+        extracted_metrics.get('cme_equity_options_oi_change'),
+        noise_threshold=NOISE_THRESHOLDS.get("equity", 50000)
     )
     rates_signal = determine_signal(
         extracted_metrics.get('cme_rates_futures_oi_change'),
-        extracted_metrics.get('cme_rates_options_oi_change')
+        extracted_metrics.get('cme_rates_options_oi_change'),
+        noise_threshold=NOISE_THRESHOLDS.get("rates", 75000)
     )
 
     ground_truth_context = {
