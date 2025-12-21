@@ -98,7 +98,7 @@ C. PRICE TREND & STALENESS CHECK (Priority: Live Data > WisdomTree PDF):
    * **Step 1: Check Ground Truth Data.**
      * IF `sp500_trend_status` exists and is not "Unknown":
        * **Trend Status** = The value provided in `sp500_trend_status` (e.g., "Trending Up", "Flat").
-       * **Status** = "Fresh" (Live data is always fresh).
+       * **Status** = "Fresh" (treated as Fresh when auditable and not Unknown).
        * **MUST CITE:** You must quote the `sp500_trend_audit` string in your verification block to prove the source.
        * **Ignore** the WisdomTree PDF chart for trend determination.
    * **Step 2: Fallback to PDF (Only if Live Data is missing/unknown):**
@@ -238,12 +238,11 @@ def fetch_live_data():
             else:
                 current_idx = -1
             
-            # Check staleness: If the "current" data point is older than 4 days (weekend + 1 holiday buffer), flag it.
-            # Using 4 days to be safe against long weekends.
+            # Check staleness: If the "current" data point is older than 5 days (weekend + holidays), flag it.
             current_data_date = hist_spx.index[current_idx].date()
             days_lag = (today_date - current_data_date).days
             
-            if days_lag > 4:
+            if days_lag > 5:
                 print(f"Warning: SPX data is stale. Last available: {current_data_date} (Lag: {days_lag} days)")
                 data['sp500_trend_status'] = "Unknown"
                 data['sp500_1mo_change_pct'] = None
@@ -251,10 +250,12 @@ def fetch_live_data():
                 return data
 
             # We want strictly 21 trading days ago
+            # If current_idx is -1, we need -22. If -2, we need -23.
             prior_idx = current_idx - 21
+            required_len = abs(prior_idx)
             
-            # Check if we have enough data (absolute value of prior_idx must be within bounds)
-            if abs(prior_idx) <= len(hist_spx):
+            # Check if we have enough data
+            if len(hist_spx) >= required_len:
                 current_close = hist_spx['Close'].iloc[current_idx]
                 prior_close = hist_spx['Close'].iloc[prior_idx]
                 
@@ -275,7 +276,7 @@ def fetch_live_data():
                 
                 print(f"SPX Trend: {trend_status} ({pct_change:.2f}%) | {data['sp500_trend_audit']}")
             else:
-                print(f"Warning: Insufficient SPX data. Rows: {len(hist_spx)}, Required: {abs(prior_idx)}")
+                print(f"Warning: Insufficient SPX data. Rows: {len(hist_spx)}, Required: {required_len}")
                 data['sp500_trend_status'] = "Unknown"
                 data['sp500_1mo_change_pct'] = None
                 data['sp500_trend_audit'] = "Insufficient data"
