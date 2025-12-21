@@ -812,7 +812,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     # Generate Signal Highlights
     sig_html = ""
     if cme_signals:
-        sig_html = "<div class='key-numbers' style='border-top: 4px solid #3498db;'>"
+        sig_html = "<div class='score-grid' style='margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px;'>"
         for label, data in cme_signals.items():
             quality = data.get('signal_label', 'Unknown')
             reason = data.get('gate_reason', '')
@@ -820,9 +820,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             color = "#27ae60" if data.get('direction_allowed') else "#7f8c8d"
             
             sig_html += f"""
-            <div class='key-number-item' title='{reason}'>
-                <span class='key-number-label'>{label.upper()} SIGNAL</span>
-                <span class='key-number-value' style='color: {color};'>{quality}</span>
+            <div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid {color};' title='{reason}'>
+                <span class='key-number-label'>{label.upper()} SIGNAL</span><br>
+                <span class='key-number-value' style='color: {color};'>{quality}</span><br>
                 <small style='font-size:0.7em; color:#999;'>{allowed}</small>
             </div>"""
         sig_html += "</div>"
