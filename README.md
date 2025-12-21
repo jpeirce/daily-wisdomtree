@@ -29,7 +29,7 @@ The system uses a **Three-Pass Intelligence Architecture** to ensure accuracy an
 ### GitHub Secrets
 Required for the GitHub Actions pipeline:
 *   `AI_STUDIO_API_KEY`: For Gemini extraction and summarization.
-*   `OPENROUTER_API_KEY`: (Optional) For side-by-side comparison with other models.
+*   `OPENROUTER_API_KEY`: (Optional) Required if using `OPENROUTER` or `ALL` summarization providers.
 *   `SMTP_EMAIL`: Sender Gmail address.
 *   `SMTP_PASSWORD`: Gmail App Password.
 *   `RECIPIENT_EMAIL`: Target email address.
