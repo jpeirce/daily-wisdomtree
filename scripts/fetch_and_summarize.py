@@ -174,9 +174,8 @@ Create a table with these 6 Dials. USE THE PRE-CALCULATED SCORES PROVIDED ABOVE.
 ### 4. Rates & Curve Profile
 [Shape, Implication]
 **The Positioning Check (Source: CME Section 01 Images):**
-* **Step 1:** Use the provided Rates Signal Quality.
-* **Step 2:** Combine with WisdomTree Yield direction (e.g., Yields Up + Futures OI Up = Likely Shorting).
-* **Output:** State the Futures/Options split to justify your confidence level. 
+* **Instruction:** Use the provided `cme_signals.rates.signal_label` and `gate_reason` directly. Do NOT attempt to recompute the signal from the images.
+* **Output:** State the Signal Label and briefly cite the underlying Open Interest split (Futures vs Options) to justify the label.
 
 ### 5. The "Canary in the Coal Mine" (Credit Stress)
 [Data, Implication]
@@ -399,7 +398,7 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > * **CME Provenance:** Bulletin Date: "{extracted_metrics.get('cme_bulletin_date', 'Unknown')}" | Total Volume: {fmt_val(extracted_metrics.get('cme_total_volume', 'N/A'))} | Total OI: {fmt_val(extracted_metrics.get('cme_total_open_interest', 'N/A'))}
 > * **CME Audit Anchors:** Totals: "{extracted_metrics.get('cme_totals_audit_label', 'N/A')}" | Rates: "{extracted_metrics.get('cme_rates_futures_audit_label', 'N/A')}" | Equities: "{extracted_metrics.get('cme_equity_futures_audit_label', 'N/A')}"
 > * **Date Check:** Report Date: {effective_date} | SPX Trend Source: yfinance
-> * **Trend Audit:** {extracted_metrics.get('sp500_trend_audit', 'N/A')}
+> * **SPX Trend Audit:** {extracted_metrics.get('sp500_trend_audit', 'N/A')}
 > * **Equities:** Signal: {eq_sig.get('signal_label', 'Unknown')} | Trend Status: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Direction Allowed: {eq_sig.get('direction_allowed', False)}
 > * **Rates:** {rates_text} | Direction Allowed: {rt_sig.get('direction_allowed', False)}
 </details>
@@ -691,10 +690,10 @@ def clean_llm_output(text, cme_signals=None):
         eq_allowed = cme_signals.get('equity', {}).get('direction_allowed', True)
         rt_allowed = cme_signals.get('rates', {}).get('direction_allowed', True)
         
-        leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout)\b", re.IGNORECASE)
+        leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout|risk[- ]on|risk[- ]off|bull steepener|bear steepener|short covering|long liquidation|new longs|new shorts|breakdown|melt[- ]up)\b", re.IGNORECASE)
         
-        # Split text into sections by H3 headers
-        sections = re.split(r"(?=### )", text)
+        # Split text into sections by headers (robust against ##, ###, ####)
+        sections = re.split(r"(?m)(?=^#{2,4}\s)", text)
         processed_sections = []
         filter_applied = False
         
@@ -976,13 +975,13 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             </div>
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Equities:</span>
-                {make_chip('Sig', eq_sig_label)}
+                {make_chip('Pos', eq_sig_label)}
                 {make_chip('Dir', eq_dir_str)}
                 {make_chip('Trend', spx_trend_status)}
             </div>
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Rates:</span>
-                {make_chip('Sig', rt_sig_label)}
+                {make_chip('Pos', rt_sig_label)}
                 {make_chip('Dir', rt_dir_str)}
                 {make_chip('10Y', ust10y_move_str)}
             </div>
