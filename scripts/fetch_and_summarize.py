@@ -1318,13 +1318,16 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
 
     # CME Staleness Check
     cme_staleness_flag = ""
+    display_cme_date = cme_date_str
     try:
         if cme_date_str != 'N/A':
             # CME date usually comes as "YYYY-MM-DD" from extraction
             cme_dt = datetime.strptime(cme_date_str, "%Y-%m-%d").date()
-            eff_dt = datetime.strptime(today, "%Y-%m-%d").date() # Using 'today' or 'effective_date'
+            eff_dt = datetime.strptime(today, "%Y-%m-%d").date()
             
-            # If CME date is older than 3 days (buffer for weekends), mark as stale
+            # Reformat for display consistency
+            display_cme_date = cme_dt.strftime("%Y-%m-%d")
+            
             days_diff = (eff_dt - cme_dt).days
             if days_diff > 3:
                 cme_staleness_flag = f' <span class="badge badge-red" title="Data is lagging today by {days_diff} days" style="font-size:0.8em; padding:1px 4px;">STALE ({days_diff}d lag)</span>'
@@ -1336,6 +1339,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
 
     # WisdomTree Staleness Check
     wt_staleness_flag = ""
+    display_wt_date = wt_date_str
     try:
         if wt_date_str != 'N/A':
             # Parse WT format: "December 19, 2025" or "Dec 19, 2025"
@@ -1344,6 +1348,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
                 wt_dt = datetime.strptime(clean_wt, "%B %d, %Y").date()
             except:
                 wt_dt = datetime.strptime(clean_wt, "%b %d, %Y").date()
+            
+            # Reformat for display consistency
+            display_wt_date = wt_dt.strftime("%Y-%m-%d")
                 
             eff_dt = datetime.strptime(today, "%Y-%m-%d").date()
             days_diff = (eff_dt - wt_dt).days
@@ -1439,14 +1446,14 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
             <span class="badge badge-gray">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>
-            <span class="badge badge-blue">Data as of: {wt_date_str} / {cme_date_str}</span>
+            <span class="badge badge-blue">Data as of: {display_wt_date} / {display_cme_date}</span>
         </div>
         
         <div class="provenance-strip" style="flex-wrap: wrap;">
             <div class="provenance-item">
                 <span class="provenance-label">Dates:</span>
-                <span title="CME Bulletin Date">CME: {cme_date_str}{cme_staleness_flag}</span>
-                <span title="WisdomTree Dashboard As-Of Date" style="margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">WT: {wt_date_str}{wt_staleness_flag}</span>
+                <span title="CME Bulletin Date">CME: {display_cme_date}{cme_staleness_flag}</span>
+                <span title="WisdomTree Dashboard As-Of Date" style="margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">WT: {display_wt_date}{wt_staleness_flag}</span>
             </div>
             <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Equities:</span>
