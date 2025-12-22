@@ -518,6 +518,18 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
         // Show selected
         document.getElementById(modelId).style.display = 'block';
     }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const badges = document.querySelectorAll(".timestamp-badge");
+        badges.forEach(b => {
+            const utc = b.getAttribute("data-utc");
+            if (utc) {
+                // Ensure explicit UTC parsing
+                const date = new Date(utc.replace(" UTC", "Z").replace(" ", "T"));
+                b.textContent = "Generated: " + date.toLocaleString();
+            }
+        });
+    });
     """
     
     html = f"""
@@ -818,6 +830,21 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     </div>
     """
 
+    generated_time = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+
+    script = """
+    document.addEventListener("DOMContentLoaded", function() {
+        const badges = document.querySelectorAll(".timestamp-badge");
+        badges.forEach(b => {
+            const utc = b.getAttribute("data-utc");
+            if (utc) {
+                const date = new Date(utc.replace(" UTC", "Z").replace(" ", "T"));
+                b.textContent = "Generated: " + date.toLocaleString();
+            }
+        });
+    });
+    """
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -826,12 +853,13 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Macro Summary - {today}</title>
         <style>{css}</style>
+        <script>{script}</script>
     </head>
     <body>
         <h1>Daily Macro Summary ({today})</h1>
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
-            <span class="badge badge-gray">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>
+            <span class="badge badge-gray timestamp-badge" data-utc="{generated_time}">Generated: {generated_time}</span>
             <span class="badge badge-blue">Data as of: WT: {display_wt_date} / CME: {display_cme_date}</span>
         </div>
         
@@ -881,7 +909,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
                 <br><strong>This content is for informational purposes only and is NOT financial advice.</strong> No fiduciary or advisor-client relationship is formed. This is not an offer or solicitation to buy or sell any security. Trading involves significant risk of loss.
                 <br>Use at your own risk; the author disclaims liability for any losses or decisions made based on this content. Consult a qualified financial professional. Past performance is not indicative of future results. Automated extraction and AI analysis may contain errors or misinterpretations.
             </div>
-            Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            Generated on {generated_time}
         </div>
     </body>
     </html>
