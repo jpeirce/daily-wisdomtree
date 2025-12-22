@@ -1,4 +1,4 @@
-<!-- Provenance: {"today": "2025-12-22", "pdfs": ["https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section01_Exchange_Overall_Volume_And_Open_Interest.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section09_Interest_Rate_Futures.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section11_Equity_And_Index_Futures.pdf"], "extracted_metrics": {"wisdomtree_as_of_date": "Dec 19, 2025", "hy_spread_current": 2.84, "hy_spread_median": 4.58, "forward_pe_current": 22.7, "forward_pe_median": 17.5, "forward_pe_plus_1sigma": 21.5, "real_yield_10y": 1.92, "inflation_expectations_5y5y": 2.25, "yield_10y": 4.12, "yield_2y": 3.46, "interest_coverage_small_cap": 2.3, "cme_bulletin_date": "2025-12-19", "cme_total_volume": 19197300, "cme_total_open_interest": 115461383, "cme_total_oi_net_change": -1863730, "cme_totals_audit_label": "CME GROUP TOTALS", "cme_rates_futures_oi_change": 230257, "cme_rates_futures_audit_label": "INTEREST RATES", "cme_rates_options_oi_change": -362874, "cme_rates_options_audit_label": "INTEREST RATES", "cme_equity_futures_oi_change": -5872, "cme_equity_futures_audit_label": "EQUITY INDEX", "cme_equity_options_oi_change": -1781589, "cme_equity_options_audit_label": "EQUITY INDEX", "vix_index": 14.91, "ust10y_current": 4.15, "ust10y_change_bps": 3.5, "dxy_current": 98.6, "dxy_1d_chg": 0.0, "wti_current": 56.96, "wti_1d_chg": 0.53, "hyg_current": 80.36, "hyg_1d_chg": -0.05, "sp500_current": 6834.5, "sp500_current_date": "2025-12-19", "sp500_trend_status": "Trending Up", "sp500_1mo_change_pct": 2.9, "sp500_trend_audit": "Change from 2025-11-19 (6642.16) to 2025-12-19 (6834.50)"}} -->
+<!-- Provenance: {"today": "2025-12-22", "pdfs": ["https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section01_Exchange_Overall_Volume_And_Open_Interest.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section09_Interest_Rate_Futures.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section11_Equity_And_Index_Futures.pdf"], "extracted_metrics": {"wisdomtree_as_of_date": "Dec 19, 2025", "hy_spread_current": 2.84, "hy_spread_median": 4.58, "forward_pe_current": 22.7, "forward_pe_median": 17.5, "forward_pe_plus_1sigma": 21.5, "real_yield_10y": 1.92, "inflation_expectations_5y5y": 2.22, "yield_10y": 4.12, "yield_2y": 3.46, "interest_coverage_small_cap": 2.3, "cme_bulletin_date": "2025-12-19", "cme_total_volume": 19197300, "cme_total_open_interest": 115461383, "cme_total_oi_net_change": -1863730, "cme_totals_audit_label": "EXCHANGE", "cme_rates_futures_oi_change": 230257, "cme_rates_futures_audit_label": "INTEREST RATES", "cme_rates_options_oi_change": -362874, "cme_rates_options_audit_label": "INTEREST RATES", "cme_equity_futures_oi_change": -5872, "cme_equity_futures_audit_label": "EQUITY INDEX", "cme_equity_options_oi_change": -1781589, "cme_equity_options_audit_label": "EQUITY INDEX", "vix_index": 14.91, "ust10y_current": 4.15, "ust10y_change_bps": 3.5, "dxy_current": 98.61, "dxy_1d_chg": 0.01, "wti_current": 57.01, "wti_1d_chg": 0.62, "hyg_current": 80.36, "hyg_1d_chg": -0.05, "sp500_current": 6834.5, "sp500_current_date": "2025-12-19", "sp500_trend_status": "Trending Up", "sp500_1mo_change_pct": 2.9, "sp500_trend_audit": "Change from 2025-11-19 (6642.16) to 2025-12-19 (6834.50)"}} -->
 
     <!DOCTYPE html>
     <html lang="en">
@@ -64,8 +64,9 @@
     .algo-box { background: #e8f6f3; padding: 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
     
     /* Grid Scoring */
-    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .score-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+    .score-grid { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 20px; border: 1px solid #e1e4e8; border-radius: 8px; overflow: hidden; background: #fff; justify-content: center; }
+    .score-card { flex: 1; min-width: 160px; background: white; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; border-right: 1px solid #eee; }
+    .score-card:last-child { border-right: none; }
     .score-label { font-size: 0.85em; color: #2c3e50; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 3.2em; line-height: 1.2; margin-bottom: 10px; font-weight: 600; }
     .score-value { font-size: 1.8em; font-weight: bold; }
     
@@ -132,7 +133,7 @@
         <h1>Daily Macro Summary (2025-12-22)</h1>
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
-            <span class="badge badge-gray timestamp-badge" data-utc="2025-12-22 04:23 UTC">Generated: 2025-12-22 04:23 UTC</span>
+            <span class="badge badge-gray timestamp-badge" data-utc="2025-12-22 04:39 UTC">Generated: 2025-12-22 04:39 UTC</span>
             <span class="badge badge-blue">Data as of: WT: 2025-12-19 / CME: 2025-12-19</span>
         </div>
         
@@ -174,7 +175,7 @@
         </div>
     </div>
     
-        <div class='key-numbers'><div class='key-number-item' title='Broad US Equity Market Index' style='cursor: help;'><span class='key-number-label'>S&P 500</span><span class='key-number-value numeric'>6834.50</span></div><div class='key-number-item' title='Valuation: Price / Expected Earnings (next 12m)' style='cursor: help;'><span class='key-number-label'>Forward P/E</span><span class='key-number-value numeric'>22.70x</span></div><div class='key-number-item' title='Credit Risk: Yield difference between Junk Bonds and Treasuries' style='cursor: help;'><span class='key-number-label'>HY Spread</span><span class='key-number-value numeric'>2.84%</span></div><div class='key-number-item' title='US Treasury 10-Year Yield (Risk-free rate proxy)' style='cursor: help;'><span class='key-number-label'>10Y Nominal</span><span class='key-number-value numeric'>4.12%</span></div><div class='key-number-item' title='US Dollar Index (Strength vs Basket)' style='cursor: help;'><span class='key-number-label'>DXY</span><span class='key-number-value numeric'>98.60</span></div><div class='key-number-item' title='Oil Price (Energy Cost Proxy)' style='cursor: help;'><span class='key-number-label'>WTI Crude</span><span class='key-number-value numeric'>$56.96</span></div><div class='key-number-item' title='High Yield Bond ETF (Liquidity Proxy)' style='cursor: help;'><span class='key-number-label'>HYG</span><span class='key-number-value numeric'>$80.36</span></div><div class='key-number-item' title='Market Volatility Index (Fear Gauge)' style='cursor: help;'><span class='key-number-label'>VIX</span><span class='key-number-value numeric'>14.91</span></div><div class='key-number-item' title='Total Volume across CME Exchange' style='cursor: help;'><span class='key-number-label'>CME Vol</span><span class='key-number-value numeric'>19,197,300</span></div></div>
+        <div class='key-numbers'><div class='key-number-item' title='Broad US Equity Market Index' style='cursor: help;'><span class='key-number-label'>S&P 500</span><span class='key-number-value numeric'>6834.50</span></div><div class='key-number-item' title='Valuation: Price / Expected Earnings (next 12m)' style='cursor: help;'><span class='key-number-label'>Forward P/E</span><span class='key-number-value numeric'>22.70x</span></div><div class='key-number-item' title='Credit Risk: Yield difference between Junk Bonds and Treasuries' style='cursor: help;'><span class='key-number-label'>HY Spread</span><span class='key-number-value numeric'>2.84%</span></div><div class='key-number-item' title='US Treasury 10-Year Yield (Risk-free rate proxy)' style='cursor: help;'><span class='key-number-label'>10Y Nominal</span><span class='key-number-value numeric'>4.12%</span></div><div class='key-number-item' title='US Dollar Index (Strength vs Basket)' style='cursor: help;'><span class='key-number-label'>DXY</span><span class='key-number-value numeric'>98.61</span></div><div class='key-number-item' title='Oil Price (Energy Cost Proxy)' style='cursor: help;'><span class='key-number-label'>WTI Crude</span><span class='key-number-value numeric'>$57.01</span></div><div class='key-number-item' title='High Yield Bond ETF (Liquidity Proxy)' style='cursor: help;'><span class='key-number-label'>HYG</span><span class='key-number-value numeric'>$80.36</span></div><div class='key-number-item' title='Market Volatility Index (Fear Gauge)' style='cursor: help;'><span class='key-number-label'>VIX</span><span class='key-number-value numeric'>14.91</span></div><div class='key-number-item' title='Total Volume across CME Exchange' style='cursor: help;'><span class='key-number-label'>CME Vol</span><span class='key-number-value numeric'>19,197,300</span></div></div>
 
         <div class="layout-wrapper">
             <div class="toc-sidebar">
@@ -360,7 +361,7 @@
 > **DATA VERIFICATION (DETERMINISTIC):**
 > * **Event Flags:** Today: ['MONTHLY_OPEX', 'TRIPLE_WITCHING'] | Recent: ['FOMC']
 > * **CME Provenance:** Bulletin Date: "2025-12-19" | Total Volume: 19,197,300 | Total OI: 115,461,383
-> * **CME Audit Anchors:** Totals: "CME GROUP TOTALS" | Rates: "INTEREST RATES" | Equities: "EQUITY INDEX"
+> * **CME Audit Anchors:** Totals: "EXCHANGE" | Rates: "INTEREST RATES" | Equities: "EQUITY INDEX"
 > * **Date Check:** Report Date: 2025-12-19 | SPX Trend Source: yfinance
 > * **SPX Trend Audit:** Change from 2025-11-19 (6642.16) to 2025-12-19 (6834.50)
 > * **Equities:** Signal: <span class="badge badge-orange" title="Options 303.4x Futures [|1781589| >= |5872|]">Hedging-Vol</span> [Fut: <span class="numeric">-5872</span> | Opt: <span class="numeric">-1781589</span>] | Part.: <span class="badge badge-red" title="">Contracting</span> | Trend: Trending Up | Dir: <span class="badge badge-gray" title="">Unknown</span>
@@ -381,17 +382,17 @@
 <tr>
 <td>Growth Impulse</td>
 <td>5.6</td>
-<td>Yield Curve (10y-2y) steepness at 66 bps supports moderate expansion; Interest Coverage for S&amp;P 500 remains robust at 8.8x.</td>
+<td>Yield Curve (10y-2y) slope is +0.66%, indicating moderate steepening.</td>
 </tr>
 <tr>
 <td>Inflation Pressure</td>
-<td>5.0</td>
-<td>Inflation expectations are anchored near the median, with 5y5y Breakevens at 2.25% and Real Yields (10y) at 1.92%.</td>
+<td>4.7</td>
+<td>5y5y Forward Inflation Expectation is stable at 2.22%.</td>
 </tr>
 <tr>
 <td>Liquidity Conditions</td>
 <td>6.2</td>
-<td>CME Total Volume is robust at 19.19M contracts, facilitating efficient transfer during the expiry window.</td>
+<td>CME Total Volume recorded at 19.2M contracts, indicating deep liquidity despite expiry noise.</td>
 </tr>
 <tr>
 <td>Credit Stress</td>
@@ -401,68 +402,58 @@
 <tr>
 <td>Valuation Risk</td>
 <td>8.1</td>
-<td>Equity multiples are stretched; S&amp;P 500 Forward P/E at 22.7x exceeds the +1 Sigma threshold (21.5x).</td>
+<td>Forward P/E Ratio is 22.7x, exceeding the +1 Sigma threshold (21.5x).</td>
 </tr>
 <tr>
 <td>Risk Appetite</td>
 <td>7.5</td>
-<td>Risk sentiment is constructive with VIX suppressed at 14.91, though CME OI contraction suggests mechanical risk management over aggressive bid.</td>
+<td>VIX is subdued at 14.91, reflecting complacency.</td>
 </tr>
 </tbody>
 </table>
 <p><a id="takeaway"></a></p>
 <h3>2. Executive Takeaway</h3>
-<p>Regime: Mechanical Expiry / Volatility Management
-The Driver: Triple Witching and Monthly OpEx are the primary drivers of flow, forcing massive options-led contraction in Open Interest rather than fundamental directional positioning.
-The Pivot: While WisdomTree charts show the S&amp;P 500 trending up (+2.9% 1mo), CME positioning data does not confirm new directional conviction. The "Hedging-Vol" signal indicates that price action is currently dominated by the rolling and expiration of derivative hedges rather than fresh futures-led accumulation.</p>
+<p>[Regime: Expiry Distortion / Volatility, The Driver: Triple Witching, The Pivot: Options Roll-off]</p>
+<p>The market is currently navigating a "Hedging-Vol" regime dominated by Triple Witching expiry mechanics. While the WisdomTree visual price action shows the S&amp;P 500 trending up (current 6834.5), the underlying flow data from CME is heavily distorted by mechanical rolling of positions. Total Open Interest contracted significantly (-1.86M net change), driven primarily by the expiration of equity options (-1.78M contracts).</p>
+<p>Consequently, directional signals are currently Unknown. The divergence between rising asset prices and contracting Open Interest is typical of an expiry week where options-led positioning unwinds. Market participants should treat current volume spikes as mechanical rather than convictions of new structural entries.</p>
 <p><a id="fiscal"></a></p>
 <h3>3. The "Fiscal Dominance" Check (Monetary Stress)</h3>
-<ul>
-<li>Data: 10-Year Real Yield at 1.92% vs. 5y5y Inflation Expectations at 2.25%.</li>
-<li>Implication: The financing environment remains restrictive with positive real yields. However, inflation expectations are stable. The bond market is pricing in a "soft landing" equilibrium where growth persists without reigniting inflation, despite the nominal 10y yield holding above 4.1%.</li>
-</ul>
+<p>[Data: Real Yield 1.92%, Implication: Neutral/Restrictive]</p>
+<p>Real yields on the 10-year Treasury are holding at 1.92% (Nominal 4.12% - Breakeven 2.20%), sitting just below the psychological 2.0% threshold. This suggests financial conditions remain restrictive but stable. With inflation expectations anchored at 2.22% (5y5y), the bond market is not currently pricing in a fiscal breakout or unanchored inflation, allowing equity valuations to remain elevated despite the 22.7x multiple.</p>
 <p><a id="rates"></a></p>
 <h3>4. Rates &amp; Curve Profile</h3>
-<ul>
-<li>Shape: The curve remains positive (steepening), with the 10y-2y spread at +66 bps.</li>
-<li>Implication: This steepness supports banking profitability and suggests the market is not pricing in an imminent recessionary cut cycle.</li>
-<li>The Positioning Check (Source: CME Section 01 Images):<ul>
-<li>Signal Label: Hedging-Vol</li>
-<li>Justification: Options-led activity dominates. Interest Rate Options OI contracted significantly (-362,874) while Futures OI expanded (+230,257). The dominance of options activity (1.6x magnitude vs. futures) typically signals hedging adjustments or volatility arbitrage rather than directional duration bets.</li>
-</ul>
-</li>
-</ul>
+<p>[Shape: Positive Steepening (+0.66%), Implication: Normalization]</p>
+<p>The yield curve (10y-2y) maintains a positive slope of 66 bps. Positioning data indicates active rotation in the front end.</p>
+<p>The Positioning Check (Source: CME Section 01 Images):
+*   Signal Label: Hedging-Vol
+*   Justification: While Futures Open Interest expanded (+230,257), Options Open Interest contracted significantly (-362,874). The dominance of options outflow (dominance ratio 1.58x) relative to futures inflow triggers a volatility/hedging flag. The notable expansion in 2-Year Note futures OI (+88,832) suggests participants are actively managing short-end duration exposure post-FOMC/pre-year-end. Directional [neutral phrasing enforced] is absent due to the conflicting flow between futures addition and options decay.</p>
 <p><a id="credit"></a></p>
 <h3>5. The "Canary in the Coal Mine" (Credit Stress)</h3>
-<ul>
-<li>Data: High Yield Spreads (OAS) are at 2.84%, well below the median of 4.58%.</li>
-<li>Implication: There is virtually no systemic credit stress visible in the corporate bond market. Defaults are not being priced in, and liquidity for lower-rated issuers remains abundant. This justifies the "Risk Appetite" score of 7.5 despite high equity valuations.</li>
-</ul>
+<p>[Data: HY Spread 2.84%, Implication: Complacency]</p>
+<p>Credit markets are signaling near-perfect conditions. High Yield spreads at 2.84% are significantly tighter than the historical median of 4.58%. This lack of stress confirms the "Risk Appetite" score of 7.5; however, such tight spreads leave little buffer for volatility. Mechanical expiry flows have not disrupted credit quality perception.</p>
 <p><a id="engine"></a></p>
 <h3>6. The "Engine Room" (Market Breadth)</h3>
+<p>[Data: Options OI -1.78M vs Futures OI -5k, Implication: Mechanical Unwind]</p>
 <ul>
-<li>Data: S&amp;P 500 Forward P/E 22.7x. CME Equity Index Futures flows show slight contraction (-5,872 contracts) vs. massive Options contraction (-1,781,589 contracts).</li>
-<li>Implication:<ul>
-<li>Signal: Hedging-Vol</li>
-<li>Context: The signal is explicitly non-directional. The extreme ratio of Options-to-Futures activity (303.4x) confirms a "Triple Witching" event where expiry mechanics completely obscure directional intent. Participation is labeled "Contracting," indicating positions are being closed or rolled rather than expanded.</li>
-</ul>
-</li>
+<li>Signal Label: Hedging-Vol</li>
+<li>Context: The signal is explicitly gated by the dominance of options activity. Options flow was 303.4x the size of futures flow.</li>
+<li>Analysis: The massive contraction in Equity Index Options Open Interest (-1,781,589) confirms the Triple Witching event is the primary driver of flows. Futures participation was muted and contracting slightly (-5,872). The "Contracting" participation label indicates that liquidity is being removed from the system as hedges roll off, rather than new directional bets being placed.</li>
+<li>Direction: Unknown</li>
 </ul>
 <p><a id="valuation"></a></p>
 <h3>7. Valuation &amp; Positioning</h3>
-<ul>
-<li>Data: S&amp;P 500 trades at 22.7x Forward Earnings (Historical Median: 17.5x).</li>
-<li>International: International discounts persist, but US premia are driven by growth factors (Tech) rather than defensive posturing.</li>
-<li>Implication: Valuation risk is the primary headwind (Score 8.1). With the market priced for perfection, the lack of expanding Futures OI suggests current price levels are supported by existing momentum and lack of selling pressure, rather than aggressive new upside positioning.</li>
-</ul>
+<p>[Data: Fwd P/E 22.7x, Implication: Extended]</p>
+<p>Valuation risk is the primary structural concern. At 22.7x Forward P/E, the S&amp;P 500 is trading above its +1 Sigma level (21.5x) and well above its median (17.5x). Positioning is currently "Options-led," meaning the market structure is supported by hedging demand and volatility dispersion rather than fundamental accumulation (futures-led). The combination of extended valuations (Score 8.1) and contracting participation suggests the market is vulnerable to a post-expiry volatility reset once the supportive options pinning is removed.</p>
 <p><a id="conclusion"></a></p>
 <h3>8. Conclusion &amp; Trade Tilt</h3>
+<p>[Risk Rating: 7/10 (High Valuation/Expiry Noise), Trade: Neutral/Defensive]</p>
+<p>The outlook is Neutral pending post-expiry clarity. The dashboard reflects a "Goldilocks" macro environment (solid growth, low stress, controlled inflation), but the microstructure (CME flows) is clouded by Triple Witching mechanics.</p>
 <ul>
-<li>Cross-Asset Confirmation: Credit spreads (tight) and VIX (low) confirm a benign backdrop, but the Yield Curve (steepening) and P/E (rich) suggest growth is priced in. CME flows fail to confirm the equity rally with volume, flagging the move as mechanical.</li>
-<li>Risk Rating: Elevated due to Expiry Noise.</li>
-<li>The Trade: Neutral / Volatility-Harvesting.</li>
-<li>Triggers: Watch for post-expiry OI normalization. If Futures OI begins to expand next week while Spreads remain &lt;3.0%, the rally may gain structural legs. If Spreads widen &gt;3.5% or VIX climbs &gt;18, the valuation premium (22.7x) becomes vulnerable.</li>
+<li>The Trade: Stand aside on directional index bets. The signal noise is too high.</li>
+<li>Triggers: Watch for a resumption of <em>Futures-led</em> expansion next week to confirm if the uptrend has structural support at these 22.7x valuation levels.</li>
+<li>Caution: Expiry/roll effects may distort OI/volume; "strong directional positioning" cannot be confirmed.</li>
 </ul>
+<p><em>(Note: Automatic direction filter applied to non-directional signal sections)</em></p>
             </div>
         
             </div>
@@ -477,8 +468,8 @@ The Pivot: While WisdomTree charts show the S&amp;P 500 trending up (+2.9% 1mo),
             <div class='score-value' style='color: #2c3e50;'>5.6/10</div>
         </div>
         <div class='score-card' style='border-left: 5px solid #2c3e50;'>
-            <div class='score-label'><span>Inflation Pressure</span><span title='Calculated (5y5y 2.25%)' style='cursor: help; opacity: 0.5;'>&#9989;</span></div>
-            <div class='score-value' style='color: #2c3e50;'>5.0/10</div>
+            <div class='score-label'><span>Inflation Pressure</span><span title='Calculated (5y5y 2.22%)' style='cursor: help; opacity: 0.5;'>&#9989;</span></div>
+            <div class='score-value' style='color: #2c3e50;'>4.7/10</div>
         </div>
         <div class='score-card' style='border-left: 5px solid #2c3e50;'>
             <div class='score-label'><span>Liquidity Conditions</span><span title='Calculated (Spread + Real Yield)' style='cursor: help; opacity: 0.5;'>&#9989;</span></div>
@@ -545,7 +536,7 @@ The Pivot: While WisdomTree charts show the S&amp;P 500 trending up (+2.9% 1mo),
                 <br><strong>This content is for informational purposes only and is NOT financial advice.</strong> No fiduciary or advisor-client relationship is formed. This is not an offer or solicitation to buy or sell any security. Trading involves significant risk of loss.
                 <br>Use at your own risk; the author disclaims liability for any losses or decisions made based on this content. Consult a qualified financial professional. Past performance is not indicative of future results. Automated extraction and AI analysis may contain errors or misinterpretations.
             </div>
-            Generated on 2025-12-22 04:23 UTC
+            Generated on 2025-12-22 04:39 UTC
         </div>
     </body>
     </html>
