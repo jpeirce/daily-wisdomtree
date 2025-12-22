@@ -288,7 +288,7 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > * **Equities:** Signal: {b(eq_sig.get('signal_label', 'Unknown'), eq_sig.get('gate_reason', ''))} {eq_deltas} | Part.: {b(eq_sig.get('participation_label', 'Unknown'))} | Trend: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Dir: {b(eq_dir_str)}
 > * **Rates:** {rates_text} {rt_deltas} | Part.: {b(rt_sig.get('participation_label', 'Unknown'))} | Dir: {b(rt_dir_str)}
 </details>
-""
+"""
     return block
 
 def calculate_deterministic_scores(extracted_data):
