@@ -1155,9 +1155,311 @@ def get_score_color(category, score):
         
     return "#2c3e50" 
 
-def generate_benchmark_html(today, summaries, filename="benchmark.html"):
+# --- HTML Rendering Helpers ---
+
+def render_chip(label, val, tooltip=""):
+    c = 'badge-gray'
+    v_lower = str(val).lower()
+    if 'directional' in v_lower: c = 'badge-blue'
+    elif 'hedging' in v_lower: c = 'badge-orange'
+    elif 'allowed' in v_lower: c = 'badge-green'
+    elif 'expanding' in v_lower: c = 'badge-green'
+    elif 'contracting' in v_lower: c = 'badge-red'
+    elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
+    elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
+    return f'<span class="badge {c}" title="{tooltip}" style="font-size:0.85em; padding:2px 6px;">{val}</span>'
+
+def fmt_num(val):
+    if val is None: return "N/A"
+    try: return f"{val:,}" if isinstance(val, int) else f"{val:.2f}"
+    except: return str(val)
+
+def fmt_delta(val):
+    if val is None: return "N/A"
+    try: return f"{int(val):+}"
+    except: return str(val)
+
+def get_curve_color(net_chg):
+    if net_chg > 0: return "color: #27ae60;"
+    if net_chg < 0: return "color: #e74c3c;"
+    return "color: #7f8c8d;"
+
+def render_provenance_strip(extracted_metrics, cme_signals):
+    if not extracted_metrics: return ""
+    return f"""
+    <div class="provenance-strip">
+        <div class="provenance-item">
+            <span class="provenance-label">Equities:</span>
+            {render_chip('Signal', cme_signals.get('equity', {}).get('signal_label', 'Unknown'), cme_signals.get('equity', {}).get('gate_reason', ''))}
+            {render_chip('Part', cme_signals.get('equity', {}).get('participation_label', 'Unknown'), "Are participants adding (Expanding) or removing (Contracting) money?")}
+            {render_chip('Dir', "Allowed" if cme_signals.get('equity', {}).get('direction_allowed') else "Unknown", "Directional Conviction: Is the system allowed to interpret price direction?")}
+            {render_chip('Trend', extracted_metrics.get('sp500_trend_status', 'Unknown'), "1-month price action (Source: yfinance)")}
+        </div>
+        <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
+            <span class="provenance-label">Rates:</span>
+            {render_chip('Signal', cme_signals.get('rates', {}).get('signal_label', 'Unknown'), cme_signals.get('rates', {}).get('gate_reason', ''))}
+            {render_chip('Part', cme_signals.get('rates', {}).get('participation_label', 'Unknown'), "Are participants adding (Expanding) or removing (Contracting) money?")}
+            {render_chip('Dir', "Allowed" if cme_signals.get('rates', {}).get('direction_allowed') else "Unknown", "Directional Conviction: Is the system allowed to interpret price direction?")}
+            {render_chip('Move', f"{extracted_metrics.get('ust10y_change_bps', 0):+.1f} bps", "Basis point change in the 10-Year Treasury yield today")}
+        </div>
+    </div>
+    """
+
+def render_key_numbers(extracted_metrics):
+    kn = extracted_metrics or {}
+    key_numbers_items = [
+        ("S&P 500", fmt_num(kn.get('sp500_current')), "Broad US Equity Market Index"),
+        ("Forward P/E", f"{fmt_num(kn.get('forward_pe_current'))}x", "Valuation: Price / Expected Earnings (next 12m)"),
+        ("HY Spread", f"{fmt_num(kn.get('hy_spread_current'))}%", "Credit Risk: Yield difference between Junk Bonds and Treasuries"),
+        ("10Y Nominal", f"{fmt_num(kn.get('yield_10y'))}%", "US Treasury 10-Year Yield (Risk-free rate proxy)"),
+        ("DXY", f"{fmt_num(kn.get('dxy_current'))}", "US Dollar Index (Strength vs Basket)"),
+        ("WTI Crude", f"${fmt_num(kn.get('wti_current'))}", "Oil Price (Energy Cost Proxy)"),
+        ("HYG", f"${fmt_num(kn.get('hyg_current'))}", "High Yield Bond ETF (Liquidity Proxy)"),
+        ("VIX", f"{fmt_num(kn.get('vix_index'))}", "Market Volatility Index (Fear Gauge)"),
+        ("CME Vol", f"{fmt_num(kn.get('cme_total_volume'))}", "Total Volume across CME Exchange")
+    ]
+    
+    html = "<div class='key-numbers'>"
+    for label, val, tooltip in key_numbers_items:
+        html += f"<div class='key-number-item' title='{tooltip}' style='cursor: help;'><span class='key-number-label'>{label}</span><span class='key-number-value numeric'>{val}</span></div>"
+    html += "</div>"
+    return html
+
+def render_rates_curve_panel(rates_curve):
+    if not rates_curve or not rates_curve.get("clusters"): return ""
+    
+    clusters = rates_curve["clusters"]
+    dom = rates_curve.get("dominance", {})
+    
+    # Cluster definitions
+    cluster_defs = {
+        "Short End": "2-Year & 3-Year Notes (Fed Policy Proxy)",
+        "Belly": "5-Year Note (Transition Zone)",
+        "Tens": "10-Year & Ultra 10-Year (Benchmark Duration)",
+        "Long End": "30-Year & Ultra Bond (Inflation/Growth Proxy)"
+    }
+
+    rows = ""
+    for name in ["Short End", "Belly", "Tens", "Long End"]:
+        data = clusters.get(name, {})
+        net = data.get("net_oi_change", 0)
+        rows += f"""
+        <div class="curve-item" title="{cluster_defs.get(name, '')}">
+            <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">{name}</span>
+            <span class="curve-value" style="{get_curve_color(net)}">{fmt_delta(net)}</span>
+        </div>
+        """
+    
+    # Tenor Detail Table
+    tenors_data = rates_curve.get("tenors", {})
+    active_cluster_name = dom.get('active_cluster', '')
+    cluster_map = {
+        "Short End": ["2y", "3y"],
+        "Belly": ["5y"],
+        "Tens": ["10y", "tn"],
+        "Long End": ["30y", "ultra"]
+    }
+    active_tenors = cluster_map.get(active_cluster_name, [])
+
+    tenor_rows = ""
+    for tenor in ["2y", "3y", "5y", "10y", "tn", "30y", "ultra"]:
+        t_data = tenors_data.get(tenor, {})
+        is_active = tenor in active_tenors
+        row_class = "active-tenor-row" if is_active else ""
+        
+        tenor_rows += f"""
+        <tr class="{row_class}">
+            <td style="text-align: left; padding: 4px 8px;">{tenor.upper()}</td>
+            <td class="numeric" style="padding: 4px 8px;">{fmt_num(t_data.get('total_volume', 0))}</td>
+            <td class="numeric" style="padding: 4px 8px; {get_curve_color(t_data.get('oi_change', 0))}">{fmt_delta(t_data.get('oi_change', 0))}</td>
+        </tr>
+        """
+
+    return f"""
+    <div class="rates-curve-panel">
+        <div class="curve-header">
+            <strong>Rates Curve Structure</strong>
+            <span style="font-size: 0.85em; color: #666;" title="Regime: Which part of the yield curve has the highest absolute Open Interest change?">
+                {render_chip('Regime', dom.get('regime_label', 'Mixed'), "Dominant Cluster based on total activity")}
+                Active: {dom.get('active_cluster')} ({dom.get('active_tenor')})
+            </span>
+        </div>
+        <div class="curve-grid">
+            {rows}
+        </div>
+        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+            <table style="font-size: 0.85em; width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="color: #7f8c8d; border-bottom: 1px solid #eee;">
+                        <th style="text-align: left; padding: 4px 8px; font-weight: 600;">Tenor</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">Vol</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">OI Chg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tenor_rows}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    """
+
+def render_event_callout(event_context, rates_curve=None):
+    combined_notes = []
+    callout_flags = []
+    
+    if event_context and event_context.get('flags_today'):
+        callout_flags.extend(event_context['flags_today'])
+        # Handle cases where notes might be missing for a flag
+        notes_dict = event_context.get('notes', {})
+        for f in event_context['flags_today']:
+            if f in notes_dict:
+                combined_notes.append(notes_dict[f])
+        
+    if rates_curve and rates_curve.get('quality', {}).get('notes'):
+        q_notes = rates_curve['quality']['notes']
+        clean_q_notes = [n for n in q_notes if not n.startswith("partial_")]
+        if clean_q_notes:
+            combined_notes.extend(clean_q_notes)
+            if "DATA_QUALITY_ALERT" not in callout_flags:
+                callout_flags.append("DATA_QUALITY_ALERT")
+
+    if not combined_notes:
+        return ""
+
+    return f"""
+    <div class="event-callout">
+        <span style="font-size: 1.5em;">&#9888;&#65039;</span>
+        <div>
+            <strong>Event/Data Alert:</strong> {', '.join(callout_flags)}<br>
+            <small style="color: #666; font-style: italic;">{' '.join(combined_notes)}</small>
+        </div>
+    </div>
+    """
+
+def render_signals_panel(cme_signals):
+    def sig_panel_item(label, sig_data):
+        quality = sig_data.get('signal_label', 'Unknown')
+        deltas = f"Fut: {fmt_delta(sig_data.get('futures_oi_delta'))} | Opt: {fmt_delta(sig_data.get('options_oi_delta'))}"
+        reason = sig_data.get('gate_reason', '')
+        return f"""
+        <div class="signal-chip" title="{reason}">
+            <strong>{label}:</strong> {render_chip('Sig', quality)} <span style="color:#777; font-size:0.9em;">{deltas}</span>
+        </div>
+        """
+    
+    return f"""
+    <div class="signals-panel">
+        {sig_panel_item('Equities', cme_signals.get('equity', {}))}
+        {sig_panel_item('Rates', cme_signals.get('rates', {}))}
+    </div>
+    """
+
+def render_algo_box(scores, details, cme_signals):
+    # Scoreboard
+    score_html = "<div class='score-grid'>"
+    for k, v in scores.items():
+        color = get_score_color(k, v)
+        detail_text = details.get(k, "Unknown")
+        status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>&#9989;</span>"
+        if "Default" in detail_text or "Error" in detail_text:
+            status_icon = f"<span title='{detail_text}' style='cursor: help;'>&#9888;&#65039;</span>"
+
+        score_html += f"""
+        <div class='score-card' style='border-left: 5px solid {color};'>
+            <div class='score-label'><span>{k}</span>{status_icon}</div>
+            <div class='score-value' style='color: {color};'>{v}/10</div>
+        </div>"""
+    score_html += "</div>"
+
+    # Signals
+    sig_html = ""
+    if cme_signals:
+        sig_html = "<div class='score-grid' style='margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px;'>"
+        for label, data in cme_signals.items():
+            quality = data.get('signal_label', 'Unknown')
+            reason = data.get('gate_reason', '')
+            allowed = "Allowed" if data.get('direction_allowed') else "Redacted"
+            color = "#27ae60" if data.get('direction_allowed') else "#7f8c8d"
+            
+            sig_html += f"""
+            <div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid {color};' title='{reason}'>
+                <span class='key-number-label'>{label.upper()} SIGNAL</span><br>
+                <span class='key-number-value' style='color: {color};'>{quality}</span><br>
+                <small style='font-size:0.7em; color:#999;'>{allowed}</small>
+            </div>"""
+        sig_html += "</div>"
+        
+    return f"""
+    <div class="algo-box">
+        <h3>&#129518; Technical Audit: Ground Truth Calculation</h3>
+        {score_html}
+        {sig_html}
+        <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models below.</em></small>
+        <details style="margin-top: 15px; cursor: pointer;">
+            <summary style="font-weight: bold; color: #3498db;">Show Calculation Formulas</summary>
+            <div style="margin-top: 10px; font-size: 0.9em; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                <ul style="list-style-type: disc; padding-left: 20px;">
+                    <li><strong>Liquidity Conditions:</strong> 5.0 + (log2(4.5 / HY_Spread) * 3.0) - max(0, (Real_Yield_10Y - 1.5) * 2.0)</li>
+                    <li><strong>Valuation Risk:</strong> 5.0 + ((Forward_PE - 18.0) * 0.66)</li>
+                    <li><strong>Inflation Pressure:</strong> 5.0 + ((Inflation_Expectations_5y5y - 2.25) * 10.0)</li>
+                    <li><strong>Credit Stress:</strong> 2.0 + ((HY_Spread - 3.0) * 1.6) [Min 2.0]</li>
+                    <li><strong>Growth Impulse:</strong> 5.0 + ((Yield_10Y - Yield_2Y - 0.50) * 3.5)</li>
+                    <li><strong>Risk Appetite:</strong> 10.0 - ((VIX - 10.0) * 0.5)</li>
+                </ul>
+                <p style="margin-top: 5px; font-style: italic;">All scores are clamped between 0.0 and 10.0.</p>
+            </div>
+        </details>
+    </div>
+    """
+
+def generate_benchmark_html(today, summaries, ground_truth=None, event_context=None, filename="benchmark.html"):
     print(f"Generating Benchmark HTML report ({filename})...")
     
+    # Extract Context
+    extracted_metrics = ground_truth.get('extracted_metrics', {}) if ground_truth else {}
+    cme_signals = ground_truth.get('cme_signals', {}) if ground_truth else {}
+    rates_curve = ground_truth.get('cme_rates_curve', {}) if ground_truth else {}
+    scores = ground_truth.get('calculated_scores', {}) if ground_truth else {}
+    # We don't have score details in ground_truth dict usually (it's separate in main), 
+    # but we can pass them or just default them.
+    # Actually main() passes ground_truth_context which has: extracted_metrics, calculated_scores, cme_signals, cme_rates_curve.
+    # It does NOT have score_details. I'll just use a dummy for now or update main to include it.
+    score_details = {} 
+
+    # Render Header Components
+    header_html = ""
+    header_html += render_provenance_strip(extracted_metrics, cme_signals)
+    
+    # PDF Links
+    header_html += f"""
+        <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
+            Independently generated summary. Informational use only—NOT financial advice. Full disclaimers in footer.
+        </div>
+        <div class="pdf-link">
+            <h3>Inputs</h3>
+            <a href="{PDF_SOURCES['wisdomtree']}" target="_blank">📄 View WisdomTree PDF</a>
+            &nbsp;&nbsp;
+            <a href="https://www.cmegroup.com/market-data/daily-bulletin.html" target="_blank" style="background-color: #2c3e50;">📊 View CME Bulletin</a>
+        </div>
+    """
+    
+    # Event Callout
+    header_html += render_event_callout(event_context, rates_curve)
+
+    header_html += render_key_numbers(extracted_metrics)
+    
+    # Rates & Algo Box (Inject AFTER the dropdown, or maybe above?)
+    # Let's put everything above the dropdown for maximum context visibility.
+    # Actually, Rates Panel and Algo Box are large. Maybe put them below the Key Numbers but above the dropdown?
+    # Yes.
+    
+    # Render Rates Panel
+    rates_html = render_rates_curve_panel(rates_curve)
+    
+    # Render Algo Box (Ground Truth)
+    algo_html = render_algo_box(scores, score_details, cme_signals)
+
     options = ""
     divs = ""
     
@@ -1174,10 +1476,11 @@ def generate_benchmark_html(today, summaries, filename="benchmark.html"):
         options += f'<option value="{model}" {is_selected}>{model}</option>'
         divs += f'<div id="{model}" class="model-content" style="display: {display_style};">{html_content}</div>'
 
+    # ... CSS ...
     css = """
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; }
     h1 { text-align: center; color: #2c3e50; }
-    .controls { text-align: center; margin-bottom: 30px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .controls { text-align: center; margin-bottom: 30px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 900; border: 1px solid #ddd; }
     select { padding: 8px; font-size: 1em; border-radius: 4px; border: 1px solid #ccc; width: 300px; }
     .model-content { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -1185,6 +1488,44 @@ def generate_benchmark_html(today, summaries, filename="benchmark.html"):
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
     h3 { border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 30px; }
+    .pdf-link { display: block; text-align: center; margin-bottom: 20px; }
+    .pdf-link a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 5px; }
+    /* Provenance Strip */
+    .provenance-strip { display: flex; justify-content: center; gap: 30px; background: #fff; padding: 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #e1e4e8; font-size: 0.95em; color: #586069; }
+    .provenance-item { display: flex; align-items: center; gap: 8px; }
+    .provenance-label { font-weight: 700; color: #24292e; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.5px; }
+    /* Key Numbers */
+    .key-numbers { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #eee; }
+    .key-number-item { display: flex; flex-direction: column; align-items: center; min-width: 100px; }
+    .key-number-label { color: #7f8c8d; font-size: 0.75em; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+    .key-number-value { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; font-family: "SF Mono", "Segoe UI Mono", "Roboto Mono", monospace; }
+    /* Rates Panel */
+    .rates-curve-panel { background: #fff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
+    .curve-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+    .curve-grid { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .curve-item { flex: 1; min-width: 80px; text-align: center; }
+    .curve-label { display: block; font-size: 0.75em; color: #7f8c8d; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+    .curve-value { font-family: ui-monospace, monospace; font-weight: bold; font-size: 1.1em; }
+    .active-tenor-row { background-color: #f1f8ff; font-weight: bold; border-left: 3px solid #3498db; }
+    /* Algo Box */
+    .algo-box { background: #e8f6f3; padding: 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
+    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .score-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+    .score-label { font-size: 0.85em; color: #2c3e50; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 3.2em; line-height: 1.2; margin-bottom: 10px; font-weight: 600; }
+    .score-value { font-size: 1.8em; font-weight: bold; }
+    /* Event Callout */
+    .event-callout { background: #f4f6f8; border: 1px solid #d1d5da; border-radius: 6px; padding: 12px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; font-size: 0.9em; color: #444; }
+    .event-callout strong { color: #24292e; }
+    /* Badges */
+    .badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; white-space: nowrap; display: inline-block; }
+    .badge-blue { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; }
+    .badge-orange { background: #fef5e7; color: #d35400; border: 1px solid #f9e79f; }
+    .badge-gray { background: #f4f6f6; color: #7f8c8d; border: 1px solid #d5dbdb; }
+    .badge-green { background: #e9f7ef; color: #27ae60; border: 1px solid #abebc6; }
+    .badge-red { background: #fdedec; color: #c0392b; border: 1px solid #fadbd8; }
+    .badge-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
     
     /* Native Dark Mode */
     @media (prefers-color-scheme: dark) {
@@ -1195,6 +1536,13 @@ def generate_benchmark_html(today, summaries, filename="benchmark.html"):
         th { background-color: #21262d; color: #c9d1d9; border-color: #30363d; }
         td { color: #c9d1d9; border-color: #30363d; }
         a { color: #58a6ff; }
+        .key-numbers, .provenance-strip, .rates-curve-panel, .algo-box, .score-card { background: #161b22 !important; border-color: #30363d !important; box-shadow: none !important; }
+        .key-number-value, .score-value, .curve-value { color: #c9d1d9 !important; }
+        .key-number-label, .score-label, .curve-label, .provenance-label { color: #8b949e !important; }
+        .badge { filter: brightness(0.9); }
+        .event-callout { background: #1c2128 !important; border-color: #444c56 !important; color: #c9d1d9 !important; }
+        .active-tenor-row { background-color: rgba(56, 139, 253, 0.15) !important; border-left-color: #58a6ff !important; }
+        .algo-box details div { background: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
     }
     """
     
@@ -1224,6 +1572,10 @@ def generate_benchmark_html(today, summaries, filename="benchmark.html"):
         <h1>Benchmark Arena: Daily Macro Summary ({today})</h1>
         <p style="text-align:center; color:#666;">Mode: {'Data-Driven (JSON)' if 'JSON' in filename else 'Visual (PDFs)'}</p>
         
+        {header_html}
+        {rates_html}
+        {algo_html}
+        
         <div class="controls">
             <label for="model-select"><strong>Select Model:</strong></label>
             <select id="model-select" onchange="showModel(this.value)">
@@ -1249,19 +1601,6 @@ def generate_benchmark_html(today, summaries, filename="benchmark.html"):
 def generate_html(today, summary_or, summary_gemini, scores, details, extracted_metrics, cme_signals=None, verification_block="", event_context=None, rates_curve=None):
     print("Generating HTML report...")
     
-    # Helper to badge chips
-    def make_chip(label, val, tooltip=""):
-        c = 'badge-gray'
-        v_lower = str(val).lower()
-        if 'directional' in v_lower: c = 'badge-blue'
-        elif 'hedging' in v_lower: c = 'badge-orange'
-        elif 'allowed' in v_lower: c = 'badge-green'
-        elif 'expanding' in v_lower: c = 'badge-green'
-        elif 'contracting' in v_lower: c = 'badge-red'
-        elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
-        elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
-        return f'<span class="badge {c}" title="{tooltip}" style="font-size:0.85em; padding:2px 6px;">{val}</span>'
-
     # Prepend Verification Block to the raw text BEFORE markdown conversion
     if verification_block:
         summary_or = verification_block + "\n\n" + summary_or
@@ -1273,185 +1612,19 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     html_or = markdown.markdown(summary_or, extensions=['tables'])
     html_gemini = markdown.markdown(summary_gemini, extensions=['tables'])
     
-    # Generate Scoreboard using CSS Grid
-    score_html = "<div class='score-grid'>"
-    for k, v in scores.items():
-        color = get_score_color(k, v)
-        detail_text = details.get(k, "Unknown")
-        
-        # Determine status icon
-        if "Default" in detail_text or "Error" in detail_text:
-            status_icon = f"<span title='{detail_text}' style='cursor: help;'>&#9888;&#65039;</span>"
-        else:
-            status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>&#9989;</span>"
-
-        score_html += f"""
-        <div class='score-card' style='border-left: 5px solid {color};'>
-            <div class='score-label'>
-                <span>{k}</span>
-                {status_icon}
-            </div>
-            <div class='score-value' style='color: {color};'>{v}/10</div>
-        </div>"""
-    score_html += "</div>"
-
-    # Generate Signal Highlights
-    sig_html = ""
-    if cme_signals:
-        sig_html = "<div class='score-grid' style='margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px;'>"
-        for label, data in cme_signals.items():
-            quality = data.get('signal_label', 'Unknown')
-            reason = data.get('gate_reason', '')
-            allowed = "Allowed" if data.get('direction_allowed') else "Redacted"
-            color = "#27ae60" if data.get('direction_allowed') else "#7f8c8d"
-            
-            sig_html += f"""
-            <div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid {color};' title='{reason}'>
-                <span class='key-number-label'>{label.upper()} SIGNAL</span><br>
-                <span class='key-number-value' style='color: {color};'>{quality}</span><br>
-                <small style='font-size:0.7em; color:#999;'>{allowed}</small>
-            </div>"""
-        sig_html += "</div>"
-
-    # Generate Key Numbers Strip
-    kn = extracted_metrics or {}
-    def fmt_num(val):
-        if val is None: return "N/A"
-        try: return f"{val:,}" if isinstance(val, int) else f"{val:.2f}"
-        except: return str(val)
-
-    key_numbers_items = [
-        ("S&P 500", fmt_num(kn.get('sp500_current')), "Broad US Equity Market Index"),
-        ("Forward P/E", f"{fmt_num(kn.get('forward_pe_current'))}x", "Valuation: Price / Expected Earnings (next 12m)"),
-        ("HY Spread", f"{fmt_num(kn.get('hy_spread_current'))}%", "Credit Risk: Yield difference between Junk Bonds and Treasuries"),
-        ("10Y Nominal", f"{fmt_num(kn.get('yield_10y'))}%", "US Treasury 10-Year Yield (Risk-free rate proxy)"),
-        ("DXY", f"{fmt_num(kn.get('dxy_current'))}", "US Dollar Index (Strength vs Basket)"),
-        ("WTI Crude", f"${fmt_num(kn.get('wti_current'))}", "Oil Price (Energy Cost Proxy)"),
-        ("HYG", f"${fmt_num(kn.get('hyg_current'))}", "High Yield Bond ETF (Liquidity Proxy)"),
-        ("VIX", f"{fmt_num(kn.get('vix_index'))}", "Market Volatility Index (Fear Gauge)"),
-        ("CME Vol", f"{fmt_num(kn.get('cme_total_volume'))}", "Total Volume across CME Exchange")
-    ]
+    # Render Components using Helpers
+    kn_html = render_key_numbers(extracted_metrics)
+    signals_panel_html = render_signals_panel(cme_signals)
+    rates_curve_html = render_rates_curve_panel(rates_curve)
     
-    kn_html = "<div class='key-numbers'>"
-    for label, val, tooltip in key_numbers_items:
-        kn_html += f"<div class='key-number-item' title='{tooltip}' style='cursor: help;'><span class='key-number-label'>{label}</span><span class='key-number-value numeric'>{val}</span></div>"
-    kn_html += "</div>"
-
-    # Helper to fmt deltas
-    def d(val):
-        if val is None: return "N/A"
-        try:
-            return f"{int(val):+}"
-        except:
-            return str(val)
-
-    # Construct Signals Panel
-    def sig_panel_item(label, sig_data):
-        quality = sig_data.get('signal_label', 'Unknown')
-        deltas = f"Fut: {d(sig_data.get('futures_oi_delta'))} | Opt: {d(sig_data.get('options_oi_delta'))}"
-        reason = sig_data.get('gate_reason', '')
-        return f"""
-        <div class="signal-chip" title="{reason}">
-            <strong>{label}:</strong> {make_chip('Sig', quality)} <span style="color:#777; font-size:0.9em;">{deltas}</span>
-        </div>
-        """
-    
-    signals_panel_html = f"""
-    <div class="signals-panel">
-        {sig_panel_item('Equities', cme_signals.get('equity', {}))}
-        {sig_panel_item('Rates', cme_signals.get('rates', {}))}
-    </div>
-    """
-
-    # Construct Rates Curve Panel
-    rates_curve_html = ""
-    if rates_curve and rates_curve.get("clusters"):
-        clusters = rates_curve["clusters"]
-        dom = rates_curve.get("dominance", {})
-        
-        # Color helper
-        def get_curve_color(net_chg):
-            if net_chg > 0: return "color: #27ae60;"
-            if net_chg < 0: return "color: #e74c3c;"
-            return "color: #7f8c8d;"
-
-        # Cluster definitions for tooltips
-        cluster_defs = {
-            "Short End": "2-Year & 3-Year Notes (Fed Policy Proxy)",
-            "Belly": "5-Year Note (Transition Zone)",
-            "Tens": "10-Year & Ultra 10-Year (Benchmark Duration)",
-            "Long End": "30-Year & Ultra Bond (Inflation/Growth Proxy)"
-        }
-
-        rows = ""
-        for name in ["Short End", "Belly", "Tens", "Long End"]:
-            data = clusters.get(name, {})
-            net = data.get("net_oi_change", 0)
-            rows += f"""
-            <div class="curve-item" title="{cluster_defs.get(name, '')}">
-                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">{name}</span>
-                <span class="curve-value" style="{get_curve_color(net)}">{d(net)}</span>
-            </div>
-            """
-        
-        # Construct Tenor Detail Table
-        tenors_data = rates_curve.get("tenors", {})
-        active_cluster_name = dom.get('active_cluster', '')
-        # Map clusters to tenors for highlighting
-        cluster_map = {
-            "Short End": ["2y", "3y"],
-            "Belly": ["5y"],
-            "Tens": ["10y", "tn"],
-            "Long End": ["30y", "ultra"]
-        }
-        active_tenors = cluster_map.get(active_cluster_name, [])
-
-        tenor_rows = ""
-        for tenor in ["2y", "3y", "5y", "10y", "tn", "30y", "ultra"]:
-            t_data = tenors_data.get(tenor, {})
-            is_active = tenor in active_tenors
-            row_class = "active-tenor-row" if is_active else ""
-            
-            tenor_rows += f"""
-            <tr class="{row_class}">
-                <td style="text-align: left; padding: 4px 8px;">{tenor.upper()}</td>
-                <td class="numeric" style="padding: 4px 8px;">{fmt_num(t_data.get('total_volume', 0))}</td>
-                <td class="numeric" style="padding: 4px 8px; {get_curve_color(t_data.get('oi_change', 0))}">{d(t_data.get('oi_change', 0))}</td>
-            </tr>
-            """
-
-        tenor_table_html = f"""
-        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-            <table style="font-size: 0.85em; width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="color: #7f8c8d; border-bottom: 1px solid #eee;">
-                        <th style="text-align: left; padding: 4px 8px; font-weight: 600;">Tenor</th>
-                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">Vol</th>
-                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">OI Chg</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {tenor_rows}
-                </tbody>
-            </table>
-        </div>
-        """
-            
-        rates_curve_html = f"""
-        <div class="rates-curve-panel">
-            <div class="curve-header">
-                <strong>Rates Curve Structure</strong>
-                <span style="font-size: 0.85em; color: #666;" title="Regime: Which part of the yield curve has the highest absolute Open Interest change?">
-                    {make_chip('Regime', dom.get('regime_label', 'Mixed'), "Dominant Cluster based on total activity")}
-                    Active: {dom.get('active_cluster')} ({dom.get('active_tenor')})
-                </span>
-            </div>
-            <div class="curve-grid">
-                {rows}
-            </div>
-            {tenor_table_html}
-        </div>
-        """
+    # Algo Box (Technical Audit) construction
+    # Note: daily report adds "Technical Audit" heading manually in HTML template, 
+    # but render_algo_box includes it. 
+    # We need to adjust the HTML template below to avoid double heading.
+    # Actually, render_algo_box returns the full <div class="algo-box">...</div>
+    # In the original generate_html, the algo box code was generated into `score_html` and `sig_html`.
+    # Let's use the helper.
+    algo_box_html = render_algo_box(scores, details, cme_signals)
 
     # Build columns conditionally
     columns_html = ""
@@ -1952,7 +2125,7 @@ def main():
             
         # Save Report
         target_file = "benchmark_data.html" if RUN_MODE == "BENCHMARK_JSON" else "benchmark.html"
-        generate_benchmark_html(today, summaries, filename=target_file)
+        generate_benchmark_html(today, summaries, ground_truth=ground_truth_context, event_context=event_context, filename=target_file)
         
     else:
         # PRODUCTION MODE
