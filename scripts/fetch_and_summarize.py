@@ -1162,7 +1162,7 @@ def generate_benchmark_html(today, summaries):
     </html>
     """
     
-    with open("summaries/index.html", "w", encoding="utf-8") as f:
+    with open("summaries/benchmark.html", "w", encoding="utf-8") as f:
         f.write(html)
         
     # Archive Copy

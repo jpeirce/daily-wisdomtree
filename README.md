@@ -52,8 +52,9 @@ The `benchmark` branch allows testing the summary logic against 8+ different mod
 gh workflow run summary.yml --ref benchmark
 ```
 
-## 📈 Live Dashboard
-View the latest report: **[Daily Macro Summary](https://jpeirce.github.io/daily-macro-summary/)**
+## 📈 Live Dashboards
+*   **[Daily Macro Summary](https://jpeirce.github.io/daily-macro-summary/)**
+*   **[Benchmark Arena](https://jpeirce.github.io/daily-macro-summary/benchmark.html)** (Unconstrained Model Testing)
 
 ## Running Locally
 1.  **Clone:** `git clone https://github.com/jpeirce/daily-macro-summary.git`
