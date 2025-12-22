@@ -902,8 +902,8 @@ def clean_llm_output(text, cme_signals=None):
         eq_allowed = cme_signals.get('equity', {}).get('direction_allowed', True)
         rt_allowed = cme_signals.get('rates', {}).get('direction_allowed', True)
         
-        # Expanded Directional Vocabulary
-        leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout|risk[- ]on|risk[- ]off|bull steepener|bear steepener|short covering|long liquidation|new longs|new shorts|breakdown|melt[- ]up|buying the dip|selling the rip)\b", re.IGNORECASE)
+        # Expanded Directional Vocabulary (including euphemisms)
+        leakage_pattern = re.compile(r"\b(bullish|bearish|conviction|aggressive|rally|selloff|breakout|risk[- ]on|risk[- ]off|bull steepener|bear steepener|short covering|long liquidation|new longs|new shorts|breakdown|melt[- ]up|buying the dip|selling the rip|upside bias|downside bias|tilted? bullish|tilted? bearish|skewed? bullish|skewed? bearish|upside skew|downside skew|risk[- ]on skew|risk[- ]off skew|bull bias|bear bias)\b", re.IGNORECASE)
         
         # Split text into sections by headers (robust against ##, ###, ####)
         sections = re.split(r"(?m)(?=^#{2,4}\s)", text)
