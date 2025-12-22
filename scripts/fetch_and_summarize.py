@@ -744,17 +744,21 @@ def clean_llm_output(text, cme_signals=None):
                 dial_name = parts[1]
                 justification = parts[3].lower()
                 
+                # Check for constraints
                 forbidden_found = False
+                found_word = ""
                 for dial_key, forbidden_list in sb_constraints.items():
                     if dial_key in dial_name:
                         for word in forbidden_list:
                             if re.search(r'\b' + re.escape(word) + r'\w*', justification):
                                 forbidden_found = True
+                                found_word = word
                                 break
                     if forbidden_found: break
                 
                 if forbidden_found:
-                    parts[3] = " (Needs revision: out-of-scope metric cited)"
+                    print(f"AUDIT VIOLATION [{dial_name.strip()}]: Found '{found_word}' in justification: '{justification}'")
+                    parts[3] = f" (Audit: Metric drift detected. Flagged: '{found_word}')"
                     line = "|".join(parts)
         
         new_lines_pass4.append(line)
