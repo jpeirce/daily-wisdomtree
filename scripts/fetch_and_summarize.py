@@ -1272,7 +1272,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .badge-green { background: #e9f7ef; color: #27ae60; border: 1px solid #abebc6; }
     .badge-red { background: #fdedec; color: #c0392b; border: 1px solid #fadbd8; }
     .badge-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-    .active-tenor-row { background-color: #f8f9fa; font-weight: bold; }
+    .active-tenor-row { background-color: #f1f8ff; font-weight: bold; border-left: 3px solid #3498db; }
 
     /* Native Dark Mode */
     @media (prefers-color-scheme: dark) {
@@ -1283,7 +1283,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         .score-label { color: #8b949e !important; }
         .signal-chip { background: #21262d !important; border-color: #30363d !important; color: #c9d1d9 !important; }
         .deterministic-tint { background-color: #1c2128 !important; border-left-color: #444c56 !important; color: #8b949e !important; }
-        .active-tenor-row { background-color: #21262d !important; }
+        .active-tenor-row { background-color: rgba(56, 139, 253, 0.15) !important; border-left-color: #58a6ff !important; }
         .toc-sidebar a { color: #c9d1d9; border-bottom-color: #21262d; }
         .toc-sidebar a:hover { background: #21262d; }
         h1, h2, h3, strong { color: #c9d1d9 !important; }
