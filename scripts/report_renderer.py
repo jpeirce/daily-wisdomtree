@@ -267,7 +267,19 @@ def render_equity_flows_panel(equity_data):
 def render_algo_box(scores, details, cme_signals):
     # Scoreboard
     score_html = "<div class='score-grid'>"
-    for k, v in scores.items():
+    
+    # Enforce consistent display order matching the LLM prompt
+    score_order = [
+        "Growth Impulse",
+        "Inflation Pressure",
+        "Liquidity Conditions",
+        "Credit Stress",
+        "Valuation Risk",
+        "Risk Appetite"
+    ]
+    
+    for k in score_order:
+        v = scores.get(k, 0.0)
         color = get_score_color(k, v)
         detail_text = details.get(k, "Unknown")
         status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>&#9989;</span>"
