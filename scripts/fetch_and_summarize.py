@@ -162,8 +162,10 @@ Target Products (Anchors):
 1. E-MINI S&P 500 (Anchor: "TOTAL EMINI S&P FUT")
 2. E-MINI NASDAQ-100 (Anchor: "TOTAL EMINI NASD FUT")
 3. E-MINI DOW ($5) (Anchor: "TOTAL MINI $5 DOW FUT")
-4. E-MINI MIDCAP 400 (Anchor: "TOTAL E-400 MIDCAP F")
-5. E-MINI SMALLCAP 600 (Anchor: "TOTAL E-600 SMLCAP F")
+4. E-MINI MIDCAP 400 (Anchor contains "TOTAL" and "MIDCAP")
+   - Likely label: "TOTAL E-400 MIDCAP F"
+5. E-MINI SMALLCAP 600 (Anchor contains "TOTAL" and "SMLCAP")
+   - Likely label: "TOTAL E-600 SMLCAP F"
 
 JSON Output Schema:
 {
@@ -189,13 +191,13 @@ JSON Output Schema:
       "oi_change": integer (signed)
     },
     "mid": {
-      "row_label": "TOTAL E-400 MIDCAP F ...",
+      "row_label": "TOTAL ... MIDCAP ...",
       "total_volume": integer,
       "open_interest": integer,
       "oi_change": integer (signed)
     },
     "sml": {
-      "row_label": "TOTAL E-600 SMLCAP F ...",
+      "row_label": "TOTAL ... SMLCAP ...",
       "total_volume": integer,
       "open_interest": integer,
       "oi_change": integer (signed)
