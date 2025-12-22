@@ -32,7 +32,7 @@ PDF_SOURCES = {
 }
 OPENROUTER_MODEL = "openai/gpt-5.2" 
 GEMINI_MODEL = "gemini-3-pro-preview" 
-RUN_MODE = os.getenv("RUN_MODE", "PRODUCTION") # Options: PRODUCTION, BENCHMARK
+RUN_MODE = os.getenv("RUN_MODE", "PRODUCTION") # Options: PRODUCTION, BENCHMARK, BENCHMARK_JSON
 
 # Benchmark Models (for RUN_MODE="BENCHMARK")
 BENCHMARK_MODELS = [
@@ -43,7 +43,7 @@ BENCHMARK_MODELS = [
     "qwen/qwen3-vl-30b-a3b-thinking",
     "meta-llama/llama-4-scout",
     "nvidia/nemotron-nano-12b-v2-vl"
-] 
+]
 
 # Noise thresholds by asset class
 NOISE_THRESHOLDS = {
@@ -716,7 +716,7 @@ def generate_verification_block(effective_date, extracted_metrics, cme_signals, 
 > * **Equities:** Signal: {b(eq_sig.get('signal_label', 'Unknown'), eq_sig.get('gate_reason', ''))} {eq_deltas} | Part.: {b(eq_sig.get('participation_label', 'Unknown'))} | Trend: {extracted_metrics.get('sp500_trend_status', 'Unknown')} | Dir: {b(eq_dir_str)}
 > * **Rates:** {rates_text} {rt_deltas} | Part.: {b(rt_sig.get('participation_label', 'Unknown'))} | Dir: {b(rt_dir_str)}
 </details>
-"""
+""")
     return block
 
 def calculate_deterministic_scores(extracted_data):
@@ -1098,9 +1098,12 @@ def summarize_gemini(pdf_paths, ground_truth, event_context):
 
 def clean_llm_output(text, cme_signals=None):
     text = text.strip()
-    if text.startswith("```markdown"): text = text[11:]
-    elif text.startswith("```"): text = text[3:]
-    if text.endswith("```"): text = text[:-3]
+    if text.startswith("```markdown"):
+        text = text[11:]
+    elif text.startswith("```"):
+        text = text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
     
     # Post-generation validator for banned terms
     
@@ -1224,7 +1227,7 @@ def clean_llm_output(text, cme_signals=None):
         if in_scoreboard and line.strip().startswith("|") and "Score" not in line and "---" not in line:
             # Table row processing
             parts = [p.strip() for p in line.split('|')]
-            if len(parts) >= 4: # | Dial | Score | Justif |
+            if len(parts) >= 4: # | Dial | Score | Justif | 
                 dial_name = parts[1]
                 justification = parts[3].lower()
                 
@@ -1237,7 +1240,7 @@ def clean_llm_output(text, cme_signals=None):
                             # "yield" matches "yields". "spread" matches "spreads".
                             # But "spread" matches "widespread" (unlikely in this context but possible).
                             # Let's use regex for safety.
-                            if re.search(r'\b' + re.escape(word) + r'\w*', justification):
+                            if re.search(r"\b" + re.escape(word) + r"\w*", justification):
                                 forbidden_found = True
                                 break
                     if forbidden_found: break
@@ -1331,7 +1334,7 @@ def render_provenance_strip(extracted_metrics, cme_signals):
             {render_chip('Move', f"{extracted_metrics.get('ust10y_change_bps', 0):+.1f} bps", "Basis point change in the 10-Year Treasury yield today")}
         </div>
     </div>
-    """
+    """)
 
 def render_key_numbers(extracted_metrics):
     kn = extracted_metrics or {}
@@ -1430,7 +1433,7 @@ def render_rates_curve_panel(rates_curve):
             </table>
         </div>
     </div>
-    """
+    "
 
 def render_event_callout(event_context, rates_curve=None):
     combined_notes = []
@@ -1463,7 +1466,7 @@ def render_event_callout(event_context, rates_curve=None):
             <small style="color: #666; font-style: italic;">{' '.join(combined_notes)}</small>
         </div>
     </div>
-    """
+    ""
 
 def render_signals_panel(cme_signals):
     def sig_panel_item(label, sig_data):
@@ -1474,14 +1477,14 @@ def render_signals_panel(cme_signals):
         <div class="signal-chip" title="{reason}">
             <strong>{label}:</strong> {render_chip('Sig', quality)} <span style="color:#777; font-size:0.9em;">{deltas}</span>
         </div>
-        """
+        "
     
     return f"""
     <div class="signals-panel">
         {sig_panel_item('Equities', cme_signals.get('equity', {}))}
         {sig_panel_item('Rates', cme_signals.get('rates', {}))}
     </div>
-    """
+    "
 
 def render_equity_flows_panel(equity_data):
     if not equity_data or not equity_data.get("products"): return ""
@@ -1507,26 +1510,26 @@ def render_equity_flows_panel(equity_data):
         oi_color = "#27ae60" if oi_chg > 0 else "#e74c3c" if oi_chg < 0 else "#7f8c8d"
         
         rows += f"""
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f1f1; padding: 6px 0; font-size: 0.9em;">
+        <div class="equity-row" style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9em;">
             <div style="font-weight: 600; color: {color};">{label}</div>
             <div style="display: flex; gap: 15px;">
-                <span title="Total Volume" style="color: #555;">Vol: {fmt_num(p.get('volume'))}</span>
+                <span class="vol-label" title="Total Volume">Vol: {fmt_num(p.get('volume'))}</span>
                 <span title="Open Interest Change" style="font-weight: bold; color: {oi_color}; min-width: 60px; text-align: right;">{fmt_delta(oi_chg)}</span>
             </div>
         </div>
         """
         
     return f"""
-    <div style="background: #fff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-        <div style="border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; font-weight: bold; color: #2c3e50; font-size: 0.95em;">
-            US Equity Index Flows (CME)
+    <div class="rates-curve-panel">
+        <div class="curve-header">
+            <strong>US Equity Index Flows (CME)</strong>
         </div>
         {rows}
         <div style="margin-top: 8px; font-size: 0.8em; color: #999; text-align: right; font-style: italic;">
             Source: Daily Bulletin Sec. 11
         </div>
     </div>
-    """
+    "
 
 def render_algo_box(scores, details, cme_signals):
     # Scoreboard
@@ -1534,9 +1537,9 @@ def render_algo_box(scores, details, cme_signals):
     for k, v in scores.items():
         color = get_score_color(k, v)
         detail_text = details.get(k, "Unknown")
-        status_icon = f"<span title='{detail_text}' style='cursor: help; opacity: 0.5;'>&#9989;</span>"
+        status_icon = f'<span title="{detail_text}" style="cursor: help; opacity: 0.5;">&#9989;</span>'
         if "Default" in detail_text or "Error" in detail_text:
-            status_icon = f"<span title='{detail_text}' style='cursor: help;'>&#9888;&#65039;</span>"
+            status_icon = f'<span title="{detail_text}" style="cursor: help;">&#9888;&#65039;</span>'
 
         score_html += f"""
         <div class='score-card' style='border-left: 5px solid {color};'>
@@ -1584,7 +1587,7 @@ def render_algo_box(scores, details, cme_signals):
             </div>
         </details>
     </div>
-    """
+    "
 
 def generate_benchmark_html(today, summaries, ground_truth=None, event_context=None, filename="benchmark.html"):
     print(f"Generating Benchmark HTML report ({filename})...")
@@ -1595,7 +1598,11 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     rates_curve = ground_truth.get('cme_rates_curve', {}) if ground_truth else {}
     equity_flows = ground_truth.get('cme_equity_flows', {}) if ground_truth else {}
     scores = ground_truth.get('calculated_scores', {}) if ground_truth else {}
-    score_details = {} 
+    # We don't have score details in ground_truth dict usually (it's separate in main), 
+    # but we can pass them or just default them.
+    # Actually main() passes ground_truth_context which has: extracted_metrics, calculated_scores, cme_signals, cme_rates_curve.
+    # It does NOT have score_details. I'll just use a dummy for now or update main to include it.
+    score_details = {}
 
     # Badges Logic
     generated_time = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
@@ -1624,11 +1631,6 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     header_html += render_event_callout(event_context, rates_curve)
 
     header_html += render_key_numbers(extracted_metrics)
-    
-    # Rates & Algo Box (Inject AFTER the dropdown, or maybe above?)
-    # Let's put everything above the dropdown for maximum context visibility.
-    # Actually, Rates Panel and Algo Box are large. Maybe put them below the Key Numbers but above the dropdown?
-    # Yes.
     
     # Render Visual Panels
     rates_html = render_rates_curve_panel(rates_curve)
@@ -1694,6 +1696,9 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     /* Event Callout */
     .event-callout { background: #f4f6f8; border: 1px solid #d1d5da; border-radius: 6px; padding: 12px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; font-size: 0.9em; color: #444; }
     .event-callout strong { color: #24292e; }
+    /* Equity Flows */
+    .equity-row { border-bottom: 1px solid #eee; }
+    .vol-label { color: #555; }
     /* Badges */
     .badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; white-space: nowrap; display: inline-block; }
     .badge-blue { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; }
@@ -1720,8 +1725,10 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
         .event-callout { background: #1c2128 !important; border-color: #444c56 !important; color: #c9d1d9 !important; }
         .active-tenor-row { background-color: rgba(56, 139, 253, 0.15) !important; border-left-color: #58a6ff !important; }
         .algo-box details div { background: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+        .equity-row { border-color: #30363d !important; }
+        .vol-label { color: #8b949e !important; }
     }
-    """
+    ""
     
     script = """
     function showModel(modelId) {
@@ -1747,13 +1754,7 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     </head>
     <body>
         <h1>Benchmark Arena: Daily Macro Summary ({today})</h1>
-        
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
-            <span class="badge badge-gray">Generated: {generated_time}</span>
-            <span class="badge badge-blue">Data as of: WT: {wt_date} / CME: {cme_date}</span>
-        </div>
-        
-        <p style="text-align:center; color:#666; margin-top: -10px;">Mode: {mode_label}</p>
+        <p style="text-align:center; color:#666;">Mode: {'Data-Driven (JSON)' if 'JSON' in filename else 'Visual (PDFs)'}</p>
         
         {header_html}
         {rates_html}
@@ -1774,7 +1775,7 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
         </div>
     </body>
     </html>
-    """
+    ""
     
     # Save to specific filename
     os.makedirs("summaries", exist_ok=True)
@@ -1874,7 +1875,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .deterministic-tint { background-color: #fbfcfd; border-left: 4px solid #d1d5da; padding: 10px 15px; margin: 10px 0; font-style: italic; color: #586069; }
 
     /* Heading Normalization within Columns */
-    .column h1, .column h2 { font-size: 1.4em; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; color: #34495e; margin-bottom: 15px; }
+    .column h1, .column h2 { font-size: 1.4em; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; color: #3498db; margin-bottom: 15px; }
     .column h3 { font-size: 1.15em; color: #2c3e50; margin-top: 20px; margin-bottom: 10px; font-weight: 700; }
     .column h4 { font-size: 1.05em; color: #555; margin-top: 15px; font-weight: 600; }
     
@@ -1907,6 +1908,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .badge-red { background: #fdedec; color: #c0392b; border: 1px solid #fadbd8; }
     .badge-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .active-tenor-row { background-color: #f1f8ff; font-weight: bold; border-left: 3px solid #3498db; }
+    /* Equity Flows */
+    .equity-row { border-bottom: 1px solid #eee; }
+    .vol-label { color: #555; }
 
     /* Native Dark Mode */
     @media (prefers-color-scheme: dark) {
@@ -1932,155 +1936,21 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         .algo-box details div { background: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
         .badge-warning { background: #3e3725; color: #ffca2c; border-color: #534824; }
     }
+    ""
+    
+    script = """
+    function showModel(modelId) {
+        // Hide all
+        const contents = document.getElementsByClassName('model-content');
+        for (let i = 0; i < contents.length; i++) {
+            contents[i].style.display = 'none';
+        }
+        // Show selected
+        document.getElementById(modelId).style.display = 'block';
+    }
     """
     
-    # We can add links to CME pdfs too if desired, but for now just Main
-    main_pdf_url = PDF_SOURCES['wisdomtree']
-    cme_bulletin_url = "https://www.cmegroup.com/market-data/daily-bulletin.html"
-    
-    # Extract provenance info
-    cme_date_str = extracted_metrics.get('cme_bulletin_date', 'N/A')
-    wt_date_str = extracted_metrics.get('wisdomtree_as_of_date', 'N/A')
-    spx_audit = extracted_metrics.get('sp500_trend_audit', 'N/A')
-    
-    # Check for missing CME data
-    cme_warning_flag = ""
-    cme_keys_to_check = ['cme_total_volume', 'cme_total_open_interest', 'cme_rates_futures_oi_change', 'cme_equity_futures_oi_change']
-    missing_cme = [k for k in cme_keys_to_check if extracted_metrics.get(k) is None]
-    if missing_cme:
-        cme_warning_flag = f' <span class="badge badge-warning" title="Missing fields: {", ".join(missing_cme)}">&#9888;&#65039; DATA INCOMPLETE</span>'
-
-    # CME Staleness Check
-    cme_staleness_flag = ""
-    display_cme_date = cme_date_str
-    try:
-        if cme_date_str != 'N/A':
-            # CME date usually comes as "YYYY-MM-DD" from extraction
-            cme_dt = datetime.strptime(cme_date_str, "%Y-%m-%d").date()
-            eff_dt = datetime.strptime(today, "%Y-%m-%d").date()
-            
-            # Reformat for display consistency
-            display_cme_date = cme_dt.strftime("%Y-%m-%d")
-            
-            days_diff = (eff_dt - cme_dt).days
-            if days_diff > 3:
-                cme_staleness_flag = f' <span class="badge badge-red" title="Data is lagging today by {days_diff} days" style="font-size:0.8em; padding:1px 4px;">STALE ({days_diff}d lag)</span>'
-                cme_warning_flag = cme_warning_flag # Ensure warning persists if both issues exist
-            else:
-                cme_staleness_flag = ' <span class="badge badge-green" title="Data is current (within 3-day buffer)" style="font-size:0.8em; padding:1px 4px;">FRESH</span>'
-    except:
-        pass
-
-    # WisdomTree Staleness Check
-    wt_staleness_flag = ""
-    display_wt_date = wt_date_str
-    try:
-        if wt_date_str != 'N/A':
-            # Parse WT format: "December 19, 2025" or "Dec 19, 2025"
-            clean_wt = wt_date_str.strip()
-            try:
-                wt_dt = datetime.strptime(clean_wt, "%B %d, %Y").date()
-            except:
-                wt_dt = datetime.strptime(clean_wt, "%b %d, %Y").date()
-            
-            # Reformat for display consistency
-            display_wt_date = wt_dt.strftime("%Y-%m-%d")
-                
-            eff_dt = datetime.strptime(today, "%Y-%m-%d").date()
-            days_diff = (eff_dt - wt_dt).days
-            
-            if days_diff > 3:
-                wt_staleness_flag = f' <span class="badge badge-red" title="Dashboard date lags today by {days_diff} days" style="font-size:0.8em; padding:1px 4px;">STALE ({days_diff}d lag)</span>'
-            else:
-                wt_staleness_flag = ' <span class="badge badge-green" title="Dashboard date is current (within 3-day buffer)" style="font-size:0.8em; padding:1px 4px;">FRESH</span>'
-    except:
-        pass
-
-    # Construct Event Callout
-    event_callout_html = ""
-    combined_notes = []
-    callout_flags = []
-    
-    if event_context and event_context.get('flags_today'):
-        callout_flags.extend(event_context['flags_today'])
-        combined_notes.extend([event_context['notes'].get(f, "Market event.") for f in event_context['flags_today']])
-        
-    # Append Quality Notes from Rates Curve (Section 09)
-    if rates_curve and rates_curve.get('quality', {}).get('notes'):
-        q_notes = rates_curve['quality']['notes']
-        # Filter out internal sentinel notes like 'partial_section09_parse' for cleaner UI
-        clean_q_notes = [n for n in q_notes if not n.startswith("partial_")]
-        if clean_q_notes:
-            combined_notes.extend(clean_q_notes)
-            if "DATA_QUALITY_ALERT" not in callout_flags:
-                callout_flags.append("DATA_QUALITY_ALERT")
-
-    if combined_notes:
-        event_callout_html = f"""
-        <div class="event-callout">
-            <span style="font-size: 1.5em;">&#9888;&#65039;</span>
-            <div>
-                <strong>Event/Data Alert:</strong> {', '.join(callout_flags)}<br>
-                <small style="color: #666; font-style: italic;">{' '.join(combined_notes)}</small>
-            </div>
-        </div>
-        """
-
-    # Gather Status Bar Fields
-    eq_sig_label = cme_signals.get('equity', {}).get('signal_label', 'Unknown')
-    eq_part_label = cme_signals.get('equity', {}).get('participation_label', 'Unknown')
-    eq_dir_allowed = cme_signals.get('equity', {}).get('direction_allowed', False)
-    eq_dir_str = "Allowed" if eq_dir_allowed else "Unknown"
-    spx_trend_status = extracted_metrics.get('sp500_trend_status', 'Unknown')
-    
-    rt_sig_label = cme_signals.get('rates', {}).get('signal_label', 'Unknown')
-    rt_part_label = cme_signals.get('rates', {}).get('participation_label', 'Unknown')
-    rt_dir_allowed = cme_signals.get('rates', {}).get('direction_allowed', False)
-    rt_dir_str = "Allowed" if rt_dir_allowed else "Unknown"
-    ust10y_move = extracted_metrics.get('ust10y_change_bps')
-    ust10y_move_str = f"{ust10y_move:+.1f} bps" if ust10y_move is not None else "N/A"
-
-    # Construct Glossary
-    glossary_items = [
-        ("Signal Badges", [
-            ("Directional", "blue", "Futures volume > Options volume. High conviction positioning."),
-            ("Hedging-Vol", "orange", "Options volume >= Futures volume. Positioning is driven by hedging or volatility bets."),
-            ("Low Signal / Noise", "gray", "Total volume change is below the noise threshold. Ignored.")
-        ]),
-        ("Trend & Participation", [
-            ("Trending Up", "green", "Price is rising (>2% over 21 days)."),
-            ("Trending Down", "red", "Price is falling (<-2% over 21 days)."),
-            ("Expanding", "green", "Open Interest is increasing (New money entering)."),
-            ("Contracting", "red", "Open Interest is decreasing (Money leaving/liquidating).")
-        ]),
-        ("Status & Freshness", [
-            ("Allowed", "green", "Directional narrative is permitted."),
-            ("Unknown/Redacted", "gray", "Directional narrative is blocked due to low signal quality."),
-            ("FRESH", "green", "Data source is current (within 3 days)."),
-            ("STALE", "red", "Data source is outdated (>3 days old)."),
-            ("&#9888;&#65039; DATA INCOMPLETE", "warning", "Critical data fields were missing from the extraction.")
-        ])
-    ]
-
-    glossary_content = ""
-    for category, items in glossary_items:
-        glossary_content += f"<div style='margin-bottom: 15px;'><h4 style='margin-bottom:8px; border-bottom:1px solid #eee;'>{category}</h4>"
-        for label, color, desc in items:
-            glossary_content += f"<div style='margin-bottom: 4px;'><span class='badge badge-{color}' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>{label}</span> <span style='font-size: 0.9em; color: #666;'>{desc}</span></div>"
-        glossary_content += "</div>"
-
-    glossary_html = f"""
-    <div class="algo-box" style="margin-top: 20px;">
-        <details>
-            <summary style="font-weight: bold; color: #3498db; cursor: pointer;">&#128214; Legend & Glossary</summary>
-            <div style="margin-top: 15px; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid #eee;">
-                {glossary_content}
-            </div>
-        </details>
-    </div>
-    """
-
-    html_content = f"""
+    html = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -2094,7 +1964,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
             <span class="badge badge-gray">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>
-            <span class="badge badge-blue">Data as of: WT: {display_wt_date} / CME: {display_cme_date}</span>
+            <span class="badge badge-blue">Data as of: WT: {wt_date} / CME: {cme_date}</span>
         </div>
         
         {provenance_html}
@@ -2106,7 +1976,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
             <h3>Inputs</h3>
             <a href="{main_pdf_url}" target="_blank">&#128196; View WisdomTree PDF</a>
             &nbsp;&nbsp;
-            <a href="{cme_bulletin_url}" target="_blank" style="background-color: #2c3e50;">&#128202; View CME Bulletin{cme_warning_flag}</a>
+            <a href="{cme_bulletin_url}" target="_blank" style="background-color: #2c3e50;">&#128202; View CME Bulletin</a>
         </div>
 
         {event_callout_html}
@@ -2132,10 +2002,10 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
 
         {algo_box_html}
 
-        {glossary_html}
-
         <div class="footer">
-...
+            <div style="margin-bottom: 20px;">
+                <a href="https://github.com/jpeirce/daily-macro-summary" style="color: #3498db; text-decoration: none; font-weight: bold;">View Source Code on GitHub</a>
+            </div>
             <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.85em; font-style: italic; line-height: 1.4; border-top: 1px solid #eee; padding-top: 20px;">
                 This is an independently generated summary of the publicly available WisdomTree Daily Dashboard and CME Data. Not affiliated with, reviewed by, or approved by WisdomTree or CME Group. Third-party sources are not responsible for the accuracy of this summary. No warranties are made regarding completeness, accuracy, or timeliness; data may be delayed or incorrect.
                 <br><strong>This content is for informational purposes only and is NOT financial advice.</strong> No fiduciary or advisor-client relationship is formed. This is not an offer or solicitation to buy or sell any security. Trading involves significant risk of loss.
@@ -2145,7 +2015,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         </div>
     </body>
     </html>
-    """
+    "
     
     with open("summaries/index.html", "w", encoding="utf-8") as f:
         # Add hidden provenance data for reproducibility
