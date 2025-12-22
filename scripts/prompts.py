@@ -140,12 +140,15 @@ JSON Output Schema:
 Extraction Rules:
 1. Locate the header row containing the Bulletin Date.
 2. Locate the "TOTAL <PRODUCT>" line for each target.
-3. Robust Parsing Heuristic: Split the line into tokens. The relevant data points are contained within the LAST 4 non-empty tokens.
-   - Example: "... 77573 1348486 2389268 - 64"
-   - Tokens are: [..., "77573", "1348486", "2389268", "-", "64"]
-   - The 4th to last token ("1348486") is Total Volume.
-   - The 3rd to last token ("2389268") is Open Interest.
-   - The last 2 tokens ("-", "64") combined form the OI Change (-64).
+3. Robust Parsing Heuristic: Split the line into tokens.
+   - **CRITICAL:** Watch for merged signs! "49139-" is NOT a single number. It is Open Interest (49139) and the sign (-) for the *next* number.
+   - If a token ends with "+" or "-", split it.
+   - Example Row: "TOTAL E-400 MIDCAP F 50 12964 49139- 42"
+   - Corrected Tokens: [..., "50", "12964", "49139", "-", "42"]
+   - The relevant data points are the LAST 4 extracted value tokens:
+     - 4th from last: Total Volume (e.g., 12964)
+     - 3rd from last: Open Interest (e.g., 49139)
+     - Last 2 tokens: Sign + Value = OI Change (e.g., -42)
    - If the last token is "UNCH", OI Change is 0.
 4. Handle "UNCH" as 0.
 5. If a product is not found, set its value to null.
