@@ -1426,7 +1426,75 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     """
 
     html_content = f"""
-...
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Macro Summary - {today}</title>
+        <style>{css}</style>
+    </head>
+    <body>
+        <h1>Daily Macro Summary ({today})</h1>
+        
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+            <span class="badge badge-gray">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</span>
+            <span class="badge badge-blue">Data as of: {wt_date_str} / {cme_date_str}</span>
+        </div>
+        
+        <div class="provenance-strip" style="flex-wrap: wrap;">
+            <div class="provenance-item">
+                <span class="provenance-label">Dates:</span>
+                <span title="CME Bulletin Date">CME: {cme_date_str}{cme_staleness_flag}</span>
+                <span title="WisdomTree Dashboard As-Of Date" style="margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">WT: {wt_date_str}{wt_staleness_flag}</span>
+            </div>
+            <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
+                <span class="provenance-label">Equities:</span>
+                {make_chip('Pos', eq_sig_label, "Positioning Signal: Based on Futures vs Options dominance")}
+                {make_chip('Part', eq_part_label, "Participation: Are participants adding (Expanding) or removing (Contracting) money?")}
+                {make_chip('Dir', eq_dir_str, "Directional Conviction: Is the system allowed to interpret price direction?")}
+                {make_chip('Trend', spx_trend_status, "Price Trend: 1-month price action (Source: yfinance)")}
+            </div>
+            <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
+                <span class="provenance-label">Rates:</span>
+                {make_chip('Pos', rt_sig_label, "Positioning Signal: Based on Futures vs Options dominance")}
+                {make_chip('Part', rt_part_label, "Participation: Are participants adding (Expanding) or removing (Contracting) money?")}
+                {make_chip('Dir', rt_dir_str, "Directional Conviction: Is the system allowed to interpret price direction?")}
+                {make_chip('10Y', ust10y_move_str, "Yield Move: Basis point change in the 10-Year Treasury yield today")}
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
+            Independently generated summary. Informational use only&mdash;NOT financial advice. Full disclaimers in footer.
+        </div>
+        <div class="pdf-link">
+            <h3>Inputs</h3>
+            <a href="{main_pdf_url}" target="_blank">&#128196; View WisdomTree PDF</a>
+            &nbsp;&nbsp;
+            <a href="{cme_bulletin_url}" target="_blank" style="background-color: #2c3e50;">&#128202; View CME Bulletin{cme_warning_flag}</a>
+        </div>
+
+        {event_callout_html}
+        {kn_html}
+
+        <div class="layout-wrapper">
+            <div class="toc-sidebar">
+                <h3>Contents</h3>
+                <a href="#scoreboard">1. Scoreboard</a>
+                <a href="#takeaway">2. Executive Takeaway</a>
+                <a href="#fiscal">3. Fiscal Dominance</a>
+                <a href="#rates">4. Rates & Curve</a>
+                <a href="#credit">5. Credit Stress</a>
+                <a href="#engine">6. Engine Room</a>
+                <a href="#valuation">7. Valuation</a>
+                <a href="#conclusion">8. Conclusion</a>
+            </div>
+            
+            <div class="container">
+                {columns_html}
+            </div>
+        </div>
+
         <div class="algo-box">
             <h3>&#129518; Technical Audit: Ground Truth Calculation</h3>
             {score_html}
