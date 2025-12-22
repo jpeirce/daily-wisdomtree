@@ -478,8 +478,9 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     .active-tenor-row { background-color: #f1f8ff; font-weight: bold; border-left: 3px solid #3498db; }
     /* Algo Box */
     .algo-box { background: #e8f6f3; padding: 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
-    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .score-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+    .score-grid { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 20px; border: 1px solid #e1e4e8; border-radius: 8px; overflow: hidden; background: #fff; justify-content: center; }
+    .score-card { flex: 1; min-width: 160px; background: white; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; border-right: 1px solid #eee; }
+    .score-card:last-child { border-right: none; }
     .score-label { font-size: 0.85em; color: #2c3e50; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 3.2em; line-height: 1.2; margin-bottom: 10px; font-weight: 600; }
     .score-value { font-size: 1.8em; font-weight: bold; }
     /* Event Callout */
@@ -695,8 +696,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .algo-box { background: #e8f6f3; padding: 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
     
     /* Grid Scoring */
-    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .score-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+    .score-grid { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 20px; border: 1px solid #e1e4e8; border-radius: 8px; overflow: hidden; background: #fff; justify-content: center; }
+    .score-card { flex: 1; min-width: 160px; background: white; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; border-right: 1px solid #eee; }
+    .score-card:last-child { border-right: none; }
     .score-label { font-size: 0.85em; color: #2c3e50; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 3.2em; line-height: 1.2; margin-bottom: 10px; font-weight: 600; }
     .score-value { font-size: 1.8em; font-weight: bold; }
     
