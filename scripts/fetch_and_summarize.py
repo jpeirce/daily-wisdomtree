@@ -870,6 +870,7 @@ def main():
     ground_truth_context = {
         "extracted_metrics": extracted_metrics,
         "calculated_scores": algo_scores,
+        "score_details": score_details,
         "cme_signals": {
             "equity": equity_signal,
             "rates": rates_signal

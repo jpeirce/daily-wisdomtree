@@ -330,7 +330,7 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
     rates_curve = ground_truth.get('cme_rates_curve', {}) if ground_truth else {}
     equity_flows = ground_truth.get('cme_equity_flows', {}) if ground_truth else {}
     scores = ground_truth.get('calculated_scores', {}) if ground_truth else {}
-    score_details = {} 
+    score_details = ground_truth.get('score_details', {}) if ground_truth else {}
 
     # Badges Logic
     generated_time = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
