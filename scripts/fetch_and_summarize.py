@@ -980,7 +980,7 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         elif 'contracting' in v_lower: c = 'badge-red'
         elif 'trending up' in v_lower or (isinstance(val, str) and val.startswith('+')): c = 'badge-green'
         elif 'trending down' in v_lower or (isinstance(val, str) and val.startswith('-')): c = 'badge-red'
-        return f'<span class="badge {c}" title="{tooltip}" style="font-size:0.75em; padding:1px 4px;">{val}</span>'
+        return f'<span class="badge {c}" title="{tooltip}" style="font-size:0.85em; padding:2px 6px;">{val}</span>'
 
     # Prepend Verification Block to the raw text BEFORE markdown conversion
     if verification_block:
@@ -1202,9 +1202,9 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
     .pdf-link a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 5px; }
     
     /* Provenance Strip */
-    .provenance-strip { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; gap: 20px; background: #fff; padding: 10px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; border: 1px solid #e1e4e8; border-top: none; font-size: 0.85em; color: #586069; }
-    .provenance-item { display: flex; align-items: center; gap: 6px; }
-    .provenance-label { font-weight: 600; color: #24292e; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+    .provenance-strip { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; gap: 30px; background: #fff; padding: 12px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; border: 1px solid #e1e4e8; border-top: none; font-size: 0.95em; color: #586069; }
+    .provenance-item { display: flex; align-items: center; gap: 8px; }
+    .provenance-label { font-weight: 700; color: #24292e; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.5px; }
     
     /* Layout & TOC */
     .layout-wrapper { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
@@ -1451,11 +1451,6 @@ def generate_html(today, summary_or, summary_gemini, scores, details, extracted_
         
         <div class="provenance-strip" style="flex-wrap: wrap;">
             <div class="provenance-item">
-                <span class="provenance-label">Dates:</span>
-                <span title="CME Bulletin Date">CME: {display_cme_date}{cme_staleness_flag}</span>
-                <span title="WisdomTree Dashboard As-Of Date" style="margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">WT: {display_wt_date}{wt_staleness_flag}</span>
-            </div>
-            <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
                 <span class="provenance-label">Equities:</span>
                 {make_chip('Pos', eq_sig_label, "Positioning Signal: Based on Futures vs Options dominance")}
                 {make_chip('Part', eq_part_label, "Participation: Are participants adding (Expanding) or removing (Contracting) money?")}
