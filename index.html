@@ -1,0 +1,497 @@
+<!-- Provenance: {"today": "2025-12-22", "pdfs": ["https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section01_Exchange_Overall_Volume_And_Open_Interest.pdf", "https://www.cmegroup.com/daily_bulletin/current/Section09_Interest_Rate_Futures.pdf"], "extracted_metrics": {"wisdomtree_as_of_date": "December 19, 2025", "hy_spread_current": 2.84, "hy_spread_median": 4.58, "forward_pe_current": 22.7, "forward_pe_median": 17.5, "forward_pe_plus_1sigma": 21.5, "real_yield_10y": 1.92, "inflation_expectations_5y5y": 2.22, "yield_10y": 4.12, "yield_2y": 3.46, "interest_coverage_small_cap": 2.3, "cme_bulletin_date": "2025-12-19", "cme_total_volume": 19197300, "cme_total_open_interest": 115461383, "cme_total_oi_net_change": -1863730, "cme_totals_audit_label": "CME GROUP TOTALS", "cme_rates_futures_oi_change": 230257, "cme_rates_futures_audit_label": "INTEREST RATES", "cme_rates_options_oi_change": -362874, "cme_rates_options_audit_label": "INTEREST RATES", "cme_equity_futures_oi_change": -5872, "cme_equity_futures_audit_label": "EQUITY INDEX", "cme_equity_options_oi_change": -1781589, "cme_equity_options_audit_label": "EQUITY INDEX", "vix_index": 14.91, "ust10y_current": 4.15, "ust10y_change_bps": 3.5, "dxy_current": 98.67, "dxy_1d_chg": 0.07, "wti_current": 56.87, "wti_1d_chg": 0.37, "hyg_current": 80.36, "hyg_1d_chg": -0.05, "sp500_current": 6834.5, "sp500_current_date": "2025-12-19", "sp500_trend_status": "Trending Up", "sp500_1mo_change_pct": 2.9, "sp500_trend_audit": "Change from 2025-11-19 (6642.16) to 2025-12-19 (6834.50)"}} -->
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Macro Summary - 2025-12-22</title>
+        <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f6f8; transition: background 0.3s, color 0.3s; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+    .pdf-link { display: block; text-align: center; margin-bottom: 20px; }
+    .pdf-link a { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 0 5px; }
+    
+    /* Provenance Strip */
+    .provenance-strip { position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; gap: 30px; background: #fff; padding: 12px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; border: 1px solid #e1e4e8; border-top: none; font-size: 0.95em; color: #586069; }
+    .provenance-item { display: flex; align-items: center; gap: 8px; }
+    .provenance-label { font-weight: 700; color: #24292e; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.5px; }
+    
+    /* Layout & TOC */
+    .layout-wrapper { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
+    .toc-sidebar { width: 200px; position: sticky; top: 80px; align-self: flex-start; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 0.9em; max-height: 80vh; overflow-y: auto; }
+    .toc-sidebar h3 { margin-top: 0; font-size: 1em; color: #7f8c8d; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .toc-sidebar a { display: block; padding: 6px 0; color: #34495e; text-decoration: none; border-bottom: 1px solid #f9f9f9; }
+    .toc-sidebar a:hover { color: #3498db; padding-left: 4px; transition: padding 0.2s; }
+    
+    .container { flex: 1; display: flex; gap: 20px; flex-wrap: wrap; }
+    .column { flex: 1; min-width: 350px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.75; }
+    
+    /* Numeric Formatting */
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; font-family: "SF Mono", "Segoe UI Mono", "Roboto Mono", monospace; }
+    table td:nth-child(2) { text-align: right; font-variant-numeric: tabular-nums; } /* Auto-target Score column */
+    
+    /* Signals Panel */
+    .signals-panel { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.85em; }
+    .signal-chip { background: #fff; border: 1px solid #ddd; padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+    
+    /* Rates Curve Panel */
+    .rates-curve-panel { background: #fff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
+    .curve-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
+    .curve-grid { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .curve-item { flex: 1; min-width: 80px; text-align: center; }
+    .curve-label { display: block; font-size: 0.75em; color: #7f8c8d; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+    .curve-value { font-family: ui-monospace, monospace; font-weight: bold; font-size: 1.1em; }
+    
+    /* Event Callout */
+    .event-callout { background: #f4f6f8; border: 1px solid #d1d5da; border-radius: 6px; padding: 12px 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 12px; font-size: 0.9em; color: #444; }
+    .event-callout strong { color: #24292e; }
+    
+    /* Deterministic Separation */
+    .deterministic-tint { background-color: #fbfcfd; border-left: 4px solid #d1d5da; padding: 10px 15px; margin: 10px 0; font-style: italic; color: #586069; }
+
+    /* Heading Normalization within Columns */
+    .column h1, .column h2 { font-size: 1.4em; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; color: #34495e; margin-bottom: 15px; }
+    .column h3 { font-size: 1.15em; color: #2c3e50; margin-top: 20px; margin-bottom: 10px; font-weight: 700; }
+    .column h4 { font-size: 1.05em; color: #555; margin-top: 15px; font-weight: 600; }
+    
+    strong { font-weight: 600; color: #2c3e50; } /* Soften bold density */
+    
+    .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .algo-box { background: #e8f6f3; padding: 25px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1f2eb; }
+    
+    /* Grid Scoring */
+    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .score-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; }
+    .score-label { font-size: 0.85em; color: #2c3e50; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 3.2em; line-height: 1.2; margin-bottom: 10px; font-weight: 600; }
+    .score-value { font-size: 1.8em; font-weight: bold; }
+    
+    /* Key Numbers Strip */
+    .key-numbers { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #eee; }
+    .key-number-item { display: flex; flex-direction: column; align-items: center; min-width: 100px; }
+    .key-number-label { color: #7f8c8d; font-size: 0.75em; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+    .key-number-value { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+
+    /* Signal Badges */
+    .badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; white-space: nowrap; display: inline-block; }
+    .badge-blue { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; }
+    .badge-orange { background: #fef5e7; color: #d35400; border: 1px solid #f9e79f; }
+    .badge-gray { background: #f4f6f6; color: #7f8c8d; border: 1px solid #d5dbdb; }
+    .badge-green { background: #e9f7ef; color: #27ae60; border: 1px solid #abebc6; }
+    .badge-red { background: #fdedec; color: #c0392b; border: 1px solid #fadbd8; }
+    .badge-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .active-tenor-row { background-color: #f1f8ff; font-weight: bold; border-left: 3px solid #3498db; }
+
+    /* Native Dark Mode */
+    @media (prefers-color-scheme: dark) {
+        body { background: #0d1117; color: #c9d1d9; }
+        .column, .algo-box, .score-grid > div, .footer, .key-numbers, .provenance-strip, .toc-sidebar, .signals-panel, .score-card, .rates-curve-panel { background: #161b22 !important; border-color: #30363d !important; box-shadow: none !important; }
+        .event-callout { background: #1c2128 !important; border-color: #444c56 !important; color: #c9d1d9 !important; }
+        .event-callout strong { color: #58a6ff !important; }
+        .score-label { color: #8b949e !important; }
+        .signal-chip { background: #21262d !important; border-color: #30363d !important; color: #c9d1d9 !important; }
+        .deterministic-tint { background-color: #1c2128 !important; border-left-color: #444c56 !important; color: #8b949e !important; }
+        .active-tenor-row { background-color: rgba(56, 139, 253, 0.15) !important; border-left-color: #58a6ff !important; }
+        .toc-sidebar a { color: #c9d1d9; border-bottom-color: #21262d; }
+        .toc-sidebar a:hover { background: #21262d; }
+        h1, h2, h3, strong { color: #c9d1d9 !important; }
+        th { background-color: #21262d; color: #c9d1d9; border-color: #30363d; }
+        td { color: #c9d1d9; border-color: #30363d; }
+        a { color: #58a6ff; }
+        .key-number-value { color: #c9d1d9 !important; }
+        .key-number-label { color: #8b949e !important; }
+        .provenance-label { color: #8b949e !important; }
+        .provenance-strip { color: #c9d1d9 !important; }
+        .badge { filter: brightness(0.9); }
+        .algo-box details div { background: #161b22 !important; color: #c9d1d9 !important; border-color: #30363d !important; }
+        .badge-warning { background: #3e3725; color: #ffca2c; border-color: #534824; }
+    }
+    </style>
+    </head>
+    <body>
+        <h1>Daily Macro Summary (2025-12-22)</h1>
+        
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+            <span class="badge badge-gray">Generated: 2025-12-22 00:43 UTC</span>
+            <span class="badge badge-blue">Data as of: WT: 2025-12-19 / CME: 2025-12-19</span>
+        </div>
+        
+        <div class="provenance-strip" style="flex-wrap: wrap;">
+            <div class="provenance-item">
+                <span class="provenance-label">Equities:</span>
+                <span class="badge badge-orange" title="Positioning Signal: Based on Futures vs Options dominance" style="font-size:0.85em; padding:2px 6px;">Hedging-Vol</span>
+                <span class="badge badge-red" title="Participation: Are participants adding (Expanding) or removing (Contracting) money?" style="font-size:0.85em; padding:2px 6px;">Contracting</span>
+                <span class="badge badge-gray" title="Directional Conviction: Is the system allowed to interpret price direction?" style="font-size:0.85em; padding:2px 6px;">Unknown</span>
+                <span class="badge badge-green" title="Price Trend: 1-month price action (Source: yfinance)" style="font-size:0.85em; padding:2px 6px;">Trending Up</span>
+            </div>
+            <div class="provenance-item" style="border-left: 1px solid #e1e4e8; padding-left: 15px;">
+                <span class="provenance-label">Rates:</span>
+                <span class="badge badge-orange" title="Positioning Signal: Based on Futures vs Options dominance" style="font-size:0.85em; padding:2px 6px;">Hedging-Vol</span>
+                <span class="badge badge-red" title="Participation: Are participants adding (Expanding) or removing (Contracting) money?" style="font-size:0.85em; padding:2px 6px;">Contracting</span>
+                <span class="badge badge-gray" title="Directional Conviction: Is the system allowed to interpret price direction?" style="font-size:0.85em; padding:2px 6px;">Unknown</span>
+                <span class="badge badge-green" title="Yield Move: Basis point change in the 10-Year Treasury yield today" style="font-size:0.85em; padding:2px 6px;">+3.5 bps</span>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 15px; color: #7f8c8d; font-size: 0.9em; font-style: italic;">
+            Independently generated summary. Informational use only&mdash;NOT financial advice. Full disclaimers in footer.
+        </div>
+        <div class="pdf-link">
+            <h3>Inputs</h3>
+            <a href="https://www.wisdomtree.com/investments/-/media/us-media-files/documents/resource-library/daily-dashboard.pdf" target="_blank">&#128196; View WisdomTree PDF</a>
+            &nbsp;&nbsp;
+            <a href="https://www.cmegroup.com/market-data/daily-bulletin.html" target="_blank" style="background-color: #2c3e50;">&#128202; View CME Bulletin</a>
+        </div>
+
+        
+        <div class="event-callout">
+            <span style="font-size: 1.5em;">&#9888;&#65039;</span>
+            <div>
+                <strong>Event Context:</strong> MONTHLY_OPEX, TRIPLE_WITCHING<br>
+                <small style="color: #666; font-style: italic;">Expiry/roll can cause mechanical volume/OI changes. Downgrade directional inference. Expiry across index options, single-stock options, and futures; positioning signals may be distorted.</small>
+            </div>
+        </div>
+        
+        <div class='key-numbers'><div class='key-number-item' title='Broad US Equity Market Index' style='cursor: help;'><span class='key-number-label'>S&P 500</span><span class='key-number-value numeric'>6834.50</span></div><div class='key-number-item' title='Valuation: Price / Expected Earnings (next 12m)' style='cursor: help;'><span class='key-number-label'>Forward P/E</span><span class='key-number-value numeric'>22.70x</span></div><div class='key-number-item' title='Credit Risk: Yield difference between Junk Bonds and Treasuries' style='cursor: help;'><span class='key-number-label'>HY Spread</span><span class='key-number-value numeric'>2.84%</span></div><div class='key-number-item' title='US Treasury 10-Year Yield (Risk-free rate proxy)' style='cursor: help;'><span class='key-number-label'>10Y Nominal</span><span class='key-number-value numeric'>4.12%</span></div><div class='key-number-item' title='US Dollar Index (Strength vs Basket)' style='cursor: help;'><span class='key-number-label'>DXY</span><span class='key-number-value numeric'>98.67</span></div><div class='key-number-item' title='Oil Price (Energy Cost Proxy)' style='cursor: help;'><span class='key-number-label'>WTI Crude</span><span class='key-number-value numeric'>$56.87</span></div><div class='key-number-item' title='High Yield Bond ETF (Liquidity Proxy)' style='cursor: help;'><span class='key-number-label'>HYG</span><span class='key-number-value numeric'>$80.36</span></div><div class='key-number-item' title='Market Volatility Index (Fear Gauge)' style='cursor: help;'><span class='key-number-label'>VIX</span><span class='key-number-value numeric'>14.91</span></div><div class='key-number-item' title='Total Volume across CME Exchange' style='cursor: help;'><span class='key-number-label'>CME Vol</span><span class='key-number-value numeric'>19,197,300</span></div></div>
+
+        <div class="layout-wrapper">
+            <div class="toc-sidebar">
+                <h3>Contents</h3>
+                <a href="#scoreboard">1. Scoreboard</a>
+                <a href="#takeaway">2. Executive Takeaway</a>
+                <a href="#fiscal">3. Fiscal Dominance</a>
+                <a href="#rates">4. Rates & Curve</a>
+                <a href="#credit">5. Credit Stress</a>
+                <a href="#engine">6. Engine Room</a>
+                <a href="#valuation">7. Valuation</a>
+                <a href="#conclusion">8. Conclusion</a>
+            </div>
+            
+            <div class="container">
+                
+            <div class="column">
+                <h2>&#129302; Gemini (gemini-3-pro-preview)</h2>
+                
+    <div class="signals-panel">
+        
+        <div class="signal-chip" title="Options 303.4x Futures [|1781589| >= |5872|]">
+            <strong>Equities:</strong> <span class="badge badge-orange" title="" style="font-size:0.85em; padding:2px 6px;">Hedging-Vol</span> <span style="color:#777; font-size:0.9em;">Fut: -5872 | Opt: -1781589</span>
+        </div>
+        
+        
+        <div class="signal-chip" title="Options 1.6x Futures [|362874| >= |230257|]">
+            <strong>Rates:</strong> <span class="badge badge-orange" title="" style="font-size:0.85em; padding:2px 6px;">Hedging-Vol</span> <span style="color:#777; font-size:0.9em;">Fut: +230257 | Opt: -362874</span>
+        </div>
+        
+    </div>
+    
+                
+        <div class="rates-curve-panel">
+            <div class="curve-header">
+                <strong>Rates Curve Structure</strong>
+                <span style="font-size: 0.85em; color: #666;" title="Regime: Which part of the yield curve has the highest absolute Open Interest change?">
+                    <span class="badge badge-gray" title="Dominant Cluster based on total activity" style="font-size:0.85em; padding:2px 6px;">Front-end dominant</span>
+                    Active: Short End (2y)
+                </span>
+            </div>
+            <div class="curve-grid">
+                
+            <div class="curve-item" title="2-Year & 3-Year Notes (Fed Policy Proxy)">
+                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">Short End</span>
+                <span class="curve-value" style="color: #27ae60;">+87912</span>
+            </div>
+            
+            <div class="curve-item" title="5-Year Note (Transition Zone)">
+                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">Belly</span>
+                <span class="curve-value" style="color: #27ae60;">+121</span>
+            </div>
+            
+            <div class="curve-item" title="10-Year & Ultra 10-Year (Benchmark Duration)">
+                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">Tens</span>
+                <span class="curve-value" style="color: #27ae60;">+20312</span>
+            </div>
+            
+            <div class="curve-item" title="30-Year & Ultra Bond (Inflation/Growth Proxy)">
+                <span class="curve-label" style="border-bottom: 1px dotted #ccc; cursor: help;">Long End</span>
+                <span class="curve-value" style="color: #27ae60;">+10541</span>
+            </div>
+            
+            </div>
+            
+        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+            <table style="font-size: 0.85em; width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="color: #7f8c8d; border-bottom: 1px solid #eee;">
+                        <th style="text-align: left; padding: 4px 8px; font-weight: 600;">Tenor</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">Vol</th>
+                        <th style="text-align: right; padding: 4px 8px; font-weight: 600;">OI Chg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr class="active-tenor-row">
+                <td style="text-align: left; padding: 4px 8px;">2Y</td>
+                <td class="numeric" style="padding: 4px 8px;">520,897</td>
+                <td class="numeric" style="padding: 4px 8px; color: #27ae60;">+88832</td>
+            </tr>
+            
+            <tr class="active-tenor-row">
+                <td style="text-align: left; padding: 4px 8px;">3Y</td>
+                <td class="numeric" style="padding: 4px 8px;">3,847</td>
+                <td class="numeric" style="padding: 4px 8px; color: #e74c3c;">-920</td>
+            </tr>
+            
+            <tr class="">
+                <td style="text-align: left; padding: 4px 8px;">5Y</td>
+                <td class="numeric" style="padding: 4px 8px;">841,200</td>
+                <td class="numeric" style="padding: 4px 8px; color: #27ae60;">+121</td>
+            </tr>
+            
+            <tr class="">
+                <td style="text-align: left; padding: 4px 8px;">10Y</td>
+                <td class="numeric" style="padding: 4px 8px;">1,196,155</td>
+                <td class="numeric" style="padding: 4px 8px; color: #27ae60;">+18533</td>
+            </tr>
+            
+            <tr class="">
+                <td style="text-align: left; padding: 4px 8px;">TN</td>
+                <td class="numeric" style="padding: 4px 8px;">291,573</td>
+                <td class="numeric" style="padding: 4px 8px; color: #27ae60;">+1779</td>
+            </tr>
+            
+            <tr class="">
+                <td style="text-align: left; padding: 4px 8px;">30Y</td>
+                <td class="numeric" style="padding: 4px 8px;">272,731</td>
+                <td class="numeric" style="padding: 4px 8px; color: #27ae60;">+14600</td>
+            </tr>
+            
+            <tr class="">
+                <td style="text-align: left; padding: 4px 8px;">ULTRA</td>
+                <td class="numeric" style="padding: 4px 8px;">188,245</td>
+                <td class="numeric" style="padding: 4px 8px; color: #e74c3c;">-4059</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+        
+        </div>
+        
+                <div class="algo-box" style="margin-bottom: 10px; padding: 10px;">
+    <strong>Audit Summary:</strong> 
+    <span class="badge badge-orange" title="Options 303.4x Futures [|1781589| >= |5872|]">Hedging-Vol</span> Equities (Unknown) &nbsp;|&nbsp; 
+    <span class="badge badge-orange" title="Options 1.6x Futures [|362874| >= |230257|]">Hedging-Vol</span> Rates (Unknown)
+</div>
+
+<details>
+<summary><strong>Full Data Verification</strong> (Click to Expand)</summary>
+
+> DATA VERIFICATION (DETERMINISTIC):
+> * Event Flags: Today: ['MONTHLY_OPEX', 'TRIPLE_WITCHING'] | Recent: ['FOMC']
+> * CME Provenance: Bulletin Date: "2025-12-19" | Total Volume: 19,197,300 | Total OI: 115,461,383
+> * CME Audit Anchors: Totals: "CME GROUP TOTALS" | Rates: "INTEREST RATES" | Equities: "EQUITY INDEX"
+> * Date Check: Report Date: 2025-12-19 | SPX Trend Source: yfinance
+> * SPX Trend Audit: Change from 2025-11-19 (6642.16) to 2025-12-19 (6834.50)
+> * Equities: Signal: <span class="badge badge-orange" title="Options 303.4x Futures [|1781589| >= |5872|]">Hedging-Vol</span> [Fut: <span class="numeric">-5872</span> | Opt: <span class="numeric">-1781589</span>] | Part.: <span class="badge badge-red" title="">Contracting</span> | Trend: Trending Up | Dir: Unknown
+> * Rates: Signal: <span class="badge badge-orange" title="Options 1.6x Futures [|362874| >= |230257|]">Hedging-Vol</span> | 10Y Move: +3.5 bps (Live) [Fut: <span class="numeric">+230257</span> | Opt: <span class="numeric">-362874</span>] | Part.: <span class="badge badge-red" title="">Contracting</span> | Dir: Unknown
+</details>
+
+<p><a id="scoreboard"></a></p>
+<h3>1. The Dashboard (Scoreboard)</h3>
+<table>
+<thead>
+<tr>
+<th>Dial</th>
+<th>Score (0-10)</th>
+<th>Justification (Data Source: Daily Market Snapshot + CME)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Growth Impulse</td>
+<td>5.6</td>
+<td>Current HY spreads (2.84%) remain tight against a median of 4.58%, supporting a constructive backdrop despite expiry noise.</td>
+</tr>
+<tr>
+<td>Inflation Pressure</td>
+<td>4.7</td>
+<td>Long-term expectations remain anchored, with <code>inflation_expectations_5y5y</code> holding at 2.22%.</td>
+</tr>
+<tr>
+<td>Liquidity Conditions</td>
+<td>6.2</td>
+<td>CME Total Volume is elevated at ~19.2M contracts, though "Triple Witching" expiry suggests this is mechanical turnover rather than organic depth.</td>
+</tr>
+<tr>
+<td>Credit Stress</td>
+<td>2.0</td>
+<td>Credit markets are priced for perfection; HY spreads at 2.84% indicate negligible stress relative to the historical median.</td>
+</tr>
+<tr>
+<td>Valuation Risk</td>
+<td>8.1</td>
+<td>Equity valuations are stretched with the Forward P/E at 22.7x, significantly above the historical median of 17.5x and exceeding the +1 Sigma level (21.5x).</td>
+</tr>
+<tr>
+<td>Risk Appetite</td>
+<td>7.5</td>
+<td>VIX at 14.91 signals surface-level calm, but CME participation is "Contracting," indicating a withdrawal of risk commitment during the expiry window.</td>
+</tr>
+</tbody>
+</table>
+<p><a id="takeaway"></a></p>
+<h3>2. Executive Takeaway</h3>
+<p>Regime: Expiry-Driven Consolidation
+The Driver: Mechanical Flows (Triple Witching).
+The Pivot: Post-Expiry Positioning Clarity.</p>
+<p>The market is currently navigating a "Triple Witching" event (concurrent expiry of stock options, index options, and index futures), which effectively masks true directional intent. While the S&amp;P 500 price action is "Trending Up" (Current: 6834.5), the underlying CME positioning does not confirm a conviction rally. Total Open Interest (OI) has contracted significantly (-1.86M contracts), driven by massive roll-offs in equity options (-1.78M). This "Contracting" participation label signals that the current price strength is occurring amidst a reduction in aggregate exposure, rather than an influx of new capital. The regime is defined by mechanical book-squaring rather than organic trend enforcement.</p>
+<p><a id="fiscal"></a></p>
+<h3>3. The "Fiscal Dominance" Check (Monetary Stress)</h3>
+<p>Data: 10y Real Yield: 1.92% | 5y5y Breakeven: 2.22%
+Implication:
+Monetary stress remains contained. Real yields at 1.92% are positive but not restrictive enough to choke the "Growth Impulse" (5.6). Inflation expectations (2.22%) are well-behaved, hovering near the Fed's target. The market is not currently pricing in a fiscal risk premium, allowing the yield curve to trade primarily on growth/policy outlooks rather than market participants credit concerns.</p>
+<p><a id="rates"></a></p>
+<h3>4. Rates &amp; Curve Profile</h3>
+<p>Shape: Normal/Steepening (10y yield 4.12% vs 2y yield 3.46%).
+Implication:
+The yield curve maintains a positive slope (+66 bps spread), reflecting a stable growth outlook. Activity is concentrated in the "Short End" (Active Cluster), suggesting market participants are adjusting front-end hedges likely tied to near-term policy expectations rather than reshaping long-term duration views.</p>
+<p>The Positioning Check (Source: CME Section 01 Images):
+*   Signal Label: Hedging-Vol
+*   Justification: Options-led activity dominates, with Options volume/OI changes running 1.6x larger than Futures (Gate Reason: <code>|362874| &gt;= |230257|</code>). The contraction in Options OI indicates expirations are clearing the deck, leaving directional [neutral phrasing enforced] "Unknown" until new positions are established post-expiry.</p>
+<p><a id="credit"></a></p>
+<h3>5. The "Canary in the Coal Mine" (Credit Stress)</h3>
+<p>Data: HY Spread: 2.84% (Median: 4.58%)
+Implication:
+The credit canary is silent. High Yield spreads are trading historically tight (Score 2.0), signaling robust confidence in corporate balance sheets. However, such compressed spreads leave little buffer for error; any sudden widening would disproportionately impact the elevated "Valuation Risk" (Score 8.1) in equities.</p>
+<p><a id="engine"></a></p>
+<h3>6. The "Engine Room" (Market Breadth)</h3>
+<p>Data: S&amp;P 500: 6834.5 | Forward P/E: 22.7x
+Implication:
+The engine room is noisy due to the expiry cycle.
+*   Signal Label: Hedging-Vol
+*   Context: The signal is heavily distorted by the expiry, with Options activity overwhelming Futures by a factor of 303.4x (Gate Reason: <code>|1781589| &gt;= |5872|</code>). The massive drop in Equity Options OI (-1,781,589) confirms that the primary activity is the rolling or expiration of existing hedges rather than the initiation of new directional bets.
+*   Direction: Unknown</p>
+<p><a id="valuation"></a></p>
+<h3>7. Valuation &amp; Positioning</h3>
+<p>Data: Forward P/E: 22.7x (vs Median 17.5x)
+Implication:
+Valuation risk is the primary structural headwind. Trading at 22.7x earnings implies the market is priced for flawless execution.
+*   Positioning Structure: Positioning is defensive and mechanical. The "Hedging-Vol" signal across both Rates and Equities suggests that participants are prioritizing risk management and roll mechanics over directional speculation. The "Contracting" participation underscores a temporary withdrawal of liquidity as books are reset for the next cycle.</p>
+<p><a id="conclusion"></a></p>
+<h3>8. Conclusion &amp; Trade Tilt</h3>
+<p>Cross-Asset Confirmation:
+Divergence. Price action (Equities UP, Credit constructive) contrasts with Flow data (Participation CONTRACTING). This divergence is typical of "Triple Witching" but requires caution. The lack of open interest expansion suggests the rally is brittle.</p>
+<p>Risk Rating: High (8/10) – Driven by extreme Valuation Risk (8.1) and the mechanical noise of expiry.</p>
+<p>The Trade:
+*   Tilt: Neutral / volatility-dampening.
+*   Rationale: With signals gated at "Hedging-Vol" and direction "Unknown" due to expiry, directional bets are low-confidence. The contracting participation suggests waiting for the post-expiry "washout" to see where new money commits.
+*   Triggers:
+    *   <em>Bullish Re-entry:</em> Post-expiry Futures OI expansion accompanied by stable 10y yields (&lt;4.15%).
+    *   <em>Defensive Pivot:</em> HY Spreads widening &gt;3.00% or 10y Real Yields pushing &gt;2.00%.</p>
+<p><em>(Note: Language normalization applied to remove attribution)</em></p>
+<p><em>(Note: Automatic direction filter applied to non-directional signal sections)</em></p>
+            </div>
+        
+            </div>
+        </div>
+
+        <div class="algo-box">
+            <h3>&#129518; Technical Audit: Ground Truth Calculation</h3>
+            <div class='score-grid'>
+        <div class='score-card' style='border-left: 5px solid #2c3e50;'>
+            <div class='score-label'>
+                <span>Liquidity Conditions</span>
+                <span title='Calculated (Spread + Real Yield)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #2c3e50;'>6.2/10</div>
+        </div>
+        <div class='score-card' style='border-left: 5px solid #e74c3c;'>
+            <div class='score-label'>
+                <span>Valuation Risk</span>
+                <span title='Calculated (P/E 22.7)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #e74c3c;'>8.1/10</div>
+        </div>
+        <div class='score-card' style='border-left: 5px solid #2c3e50;'>
+            <div class='score-label'>
+                <span>Inflation Pressure</span>
+                <span title='Calculated (5y5y 2.22%)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #2c3e50;'>4.7/10</div>
+        </div>
+        <div class='score-card' style='border-left: 5px solid #27ae60;'>
+            <div class='score-label'>
+                <span>Credit Stress</span>
+                <span title='Calculated (Spread 2.84%)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #27ae60;'>2.0/10</div>
+        </div>
+        <div class='score-card' style='border-left: 5px solid #2c3e50;'>
+            <div class='score-label'>
+                <span>Growth Impulse</span>
+                <span title='Calculated (Curve 0.66%)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #2c3e50;'>5.6/10</div>
+        </div>
+        <div class='score-card' style='border-left: 5px solid #27ae60;'>
+            <div class='score-label'>
+                <span>Risk Appetite</span>
+                <span title='Calculated (VIX 14.91)' style='cursor: help; opacity: 0.5;'>&#9989;</span>
+            </div>
+            <div class='score-value' style='color: #27ae60;'>7.5/10</div>
+        </div></div>
+            <div class='score-grid' style='margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px;'>
+            <div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid #7f8c8d;' title='Options 303.4x Futures [|1781589| >= |5872|]'>
+                <span class='key-number-label'>EQUITY SIGNAL</span><br>
+                <span class='key-number-value' style='color: #7f8c8d;'>Hedging-Vol</span><br>
+                <small style='font-size:0.7em; color:#999;'>Redacted</small>
+            </div>
+            <div style='background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-left: 5px solid #7f8c8d;' title='Options 1.6x Futures [|362874| >= |230257|]'>
+                <span class='key-number-label'>RATES SIGNAL</span><br>
+                <span class='key-number-value' style='color: #7f8c8d;'>Hedging-Vol</span><br>
+                <small style='font-size:0.7em; color:#999;'>Redacted</small>
+            </div></div>
+            <small><em>These scores are calculated purely from extracted data points using fixed algorithms, serving as a benchmark for the AI models below.</em></small>
+            
+            <details style="margin-top: 15px; cursor: pointer;">
+                <summary style="font-weight: bold; color: #3498db;">Show Calculation Formulas</summary>
+                <div style="margin-top: 10px; font-size: 0.9em; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <ul style="list-style-type: disc; padding-left: 20px;">
+                        <li><strong>Liquidity Conditions:</strong> 5.0 + (log2(4.5 / HY_Spread) * 3.0) - max(0, (Real_Yield_10Y - 1.5) * 2.0)</li>
+                        <li><strong>Valuation Risk:</strong> 5.0 + ((Forward_PE - 18.0) * 0.66)</li>
+                        <li><strong>Inflation Pressure:</strong> 5.0 + ((Inflation_Expectations_5y5y - 2.25) * 10.0)</li>
+                        <li><strong>Credit Stress:</strong> 2.0 + ((HY_Spread - 3.0) * 1.6) [Min 2.0]</li>
+                        <li><strong>Growth Impulse:</strong> 5.0 + ((Yield_10Y - Yield_2Y - 0.50) * 3.5)</li>
+                        <li><strong>Risk Appetite:</strong> 10.0 - ((VIX - 10.0) * 0.5)</li>
+                    </ul>
+                    <p style="margin-top: 5px; font-style: italic;">All scores are clamped between 0.0 and 10.0.</p>
+                </div>
+            </details>
+        </div>
+
+        
+    <div class="algo-box" style="margin-top: 20px;">
+        <details>
+            <summary style="font-weight: bold; color: #3498db; cursor: pointer;">&#128214; Legend & Glossary</summary>
+            <div style="margin-top: 15px; padding: 10px; background: #fff; border-radius: 6px; border: 1px solid #eee;">
+                <div style='margin-bottom: 15px;'><h4 style='margin-bottom:8px; border-bottom:1px solid #eee;'>Signal Badges</h4><div style='margin-bottom: 4px;'><span class='badge badge-blue' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Directional</span> <span style='font-size: 0.9em; color: #666;'>Futures volume > Options volume. High conviction positioning.</span></div><div style='margin-bottom: 4px;'><span class='badge badge-orange' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Hedging-Vol</span> <span style='font-size: 0.9em; color: #666;'>Options volume >= Futures volume. Positioning is driven by hedging or volatility bets.</span></div><div style='margin-bottom: 4px;'><span class='badge badge-gray' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Low Signal / Noise</span> <span style='font-size: 0.9em; color: #666;'>Total volume change is below the noise threshold. Ignored.</span></div></div><div style='margin-bottom: 15px;'><h4 style='margin-bottom:8px; border-bottom:1px solid #eee;'>Trend & Participation</h4><div style='margin-bottom: 4px;'><span class='badge badge-green' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Trending Up</span> <span style='font-size: 0.9em; color: #666;'>Price is rising (>2% over 21 days).</span></div><div style='margin-bottom: 4px;'><span class='badge badge-red' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Trending Down</span> <span style='font-size: 0.9em; color: #666;'>Price is falling (<-2% over 21 days).</span></div><div style='margin-bottom: 4px;'><span class='badge badge-green' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Expanding</span> <span style='font-size: 0.9em; color: #666;'>Open Interest is increasing (New money entering).</span></div><div style='margin-bottom: 4px;'><span class='badge badge-red' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Contracting</span> <span style='font-size: 0.9em; color: #666;'>Open Interest is decreasing (Money leaving/liquidating).</span></div></div><div style='margin-bottom: 15px;'><h4 style='margin-bottom:8px; border-bottom:1px solid #eee;'>Status & Freshness</h4><div style='margin-bottom: 4px;'><span class='badge badge-green' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Allowed</span> <span style='font-size: 0.9em; color: #666;'>Directional narrative is permitted.</span></div><div style='margin-bottom: 4px;'><span class='badge badge-gray' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>Unknown/Redacted</span> <span style='font-size: 0.9em; color: #666;'>Directional narrative is blocked due to low signal quality.</span></div><div style='margin-bottom: 4px;'><span class='badge badge-green' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>FRESH</span> <span style='font-size: 0.9em; color: #666;'>Data source is current (within 3 days).</span></div><div style='margin-bottom: 4px;'><span class='badge badge-red' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>STALE</span> <span style='font-size: 0.9em; color: #666;'>Data source is outdated (>3 days old).</span></div><div style='margin-bottom: 4px;'><span class='badge badge-warning' style='min-width: 120px; width: auto; text-align: center; display: inline-block;'>&#9888;&#65039; DATA INCOMPLETE</span> <span style='font-size: 0.9em; color: #666;'>Critical data fields were missing from the extraction.</span></div></div>
+            </div>
+        </details>
+    </div>
+    
+
+        <div class="footer">
+...
+            <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.85em; font-style: italic; line-height: 1.4; border-top: 1px solid #eee; padding-top: 20px;">
+                This is an independently generated summary of the publicly available WisdomTree Daily Dashboard and CME Data. Not affiliated with, reviewed by, or approved by WisdomTree or CME Group. Third-party sources are not responsible for the accuracy of this summary. No warranties are made regarding completeness, accuracy, or timeliness; data may be delayed or incorrect.
+                <br><strong>This content is for informational purposes only and is NOT financial advice.</strong> No fiduciary or advisor-client relationship is formed. This is not an offer or solicitation to buy or sell any security. Trading involves significant risk of loss.
+                <br>Use at your own risk; the author disclaims liability for any losses or decisions made based on this content. Consult a qualified financial professional. Past performance is not indicative of future results. Automated extraction and AI analysis may contain errors or misinterpretations.
+            </div>
+            Generated on 2025-12-22 00:43:33
+        </div>
+    </body>
+    </html>
+    
