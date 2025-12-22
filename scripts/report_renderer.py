@@ -568,7 +568,6 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
         {header_html}
         {rates_html}
         {equity_flows_html}
-        {algo_html}
         
         <div class="controls">
             <label for="model-select"><strong>Select Model:</strong></label>
@@ -579,8 +578,18 @@ def generate_benchmark_html(today, summaries, ground_truth=None, event_context=N
         
         {divs}
         
-        <div style="text-align: center; margin-top: 40px; color: #666; font-size: 0.9em;">
-            Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | <a href="https://github.com/jpeirce/daily-macro-summary" style="color: #666;">View Source</a>
+        {algo_html}
+        
+        <div class="footer">
+            <div style="margin-bottom: 20px;">
+                <a href="https://github.com/jpeirce/daily-macro-summary" style="color: #3498db; text-decoration: none; font-weight: bold;">View Source Code on GitHub</a>
+            </div>
+            <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.85em; font-style: italic; line-height: 1.4; border-top: 1px solid #eee; padding-top: 20px;">
+                This is an independently generated summary of the publicly available WisdomTree Daily Dashboard and CME Data. Not affiliated with, reviewed by, or approved by WisdomTree or CME Group. Third-party sources are not responsible for the accuracy of this summary. No warranties are made regarding completeness, accuracy, or timeliness; data may be delayed or incorrect.
+                <br><strong>This content is for informational purposes only and is NOT financial advice.</strong> No fiduciary or advisor-client relationship is formed. This is not an offer or solicitation to buy or sell any security. Trading involves significant risk of loss.
+                <br>Use at your own risk; the author disclaims liability for any losses or decisions made based on this content. Consult a qualified financial professional. Past performance is not indicative of future results. Automated extraction and AI analysis may contain errors or misinterpretations.
+            </div>
+            Generated on {generated_time}
         </div>
     </body>
     </html>
